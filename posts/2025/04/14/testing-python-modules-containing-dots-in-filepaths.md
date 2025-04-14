@@ -43,7 +43,7 @@ If you are only interested by the working solution, here is [a link to the corre
 
 One approach we considered was renaming the files directly within `pytest` using the `pytest_configure` and `pytest_unconfigure` functions, which run before and after the test execution, respectively.
 
-``` py
+```py
 from pathlib import Path
 
 # Windmill generates files with names like "foo.inline_script.py", but pytest does not accept the extra dot in filenames.
@@ -79,7 +79,7 @@ This solution worked well with `pytest`. However, to further enhance our develop
 
 Another approach we considered was creating a Bash script to rename all the files before launching the Python tests - whether with `pytest` or `pytest-watch`. Since we use a `Makefile` to start our tests, incorporating pre- and post-renaming steps was straightforward. For example, our Makefile included targets like:
 
-``` Makefile
+```Makefile
 test-pre-renaming-hook:
     ./bin/preTestRenamingHook.sh
 
@@ -131,7 +131,7 @@ Let's implement this function.
 
 For now, let's define this function directly into our test file. We'll extract it at a higher-level later.
 
-``` py
+```py
 def import_from_file(filepath: str):
     module_name = filepath.replace("/", "_").replace(".", "_")
     spec = spec_from_file_location(module_name, filepath)
@@ -174,7 +174,7 @@ The penultimate line is the most important one: there is an error during the col
 
 We didn't find any ways to disable the collection phase. Instead, we are going to create a custom `run_dotted_test.py` script to collect all the tests in a given file:
 
-``` py
+```py
 import sys
 import types
 import traceback
@@ -256,7 +256,7 @@ All the rest of the code is some refined ChatGPT magic to mimic the `pytest` out
 
 We can now run our test using the command:
 
-``` sh
+```sh
 python run_dotted_test.py f/import_flow.flow/import_data.inline_script_test.py
 ```
 
@@ -264,11 +264,23 @@ Which produce an output similar to:
 
 ![Image](./test-output.png)
 
+Note that we re-created the same function `import_from_file` as the one we have defined into our test file. To keep our code DRY, we can use our `run_dotted_tests` module instead:
+
+```py
+from run_dotted_test import import_from_file
+
+module = import_from_file('f/import_flow.flow/import_data.inline-script.py')
+
+def test_import_data_should_return_true():
+    result = module.import_data("file_000.csv")
+    assert result is True
+```
+
 ### Running All your Project Tests
 
 The previous script runs tests from a single file. To execute tests across all the `*_test.py` files in our project, we can write a shell script:
 
-``` sh
+```sh
 #!/bin/sh
 
 exit_code=0
@@ -290,11 +302,11 @@ We can now run all our tests, even with dot-containing filepaths, by running thi
 
 ### Watch Mode
 
-To improve the developer experience, we need a watch mode. When running in watch mode, we want to run all the tests from the test file currently edited. We also want to run all the tests when editing the code file associated to this test file. 
+To improve the developer experience, we need a watch mode. When running in watch mode, we want to run all the tests from the test file currently edited. We also want to run all the tests when editing the code file associated to this test file.
 
-Due to similar issues than the `pytest` collection phase, we can't use the `pytest-watch` package. Instead, we are going to leverage the `watchexec` package. 
+Due to similar issues than the `pytest` collection phase, we can't use the `pytest-watch` package. Instead, we are going to leverage the `watchexec` package.
 
-``` sh
+```sh
 watchexec --exts py \
     --restart \
     --emit-events-to=json-stdio \
@@ -303,7 +315,7 @@ watchexec --exts py \
 
 We are listening to changes from all Python files, and are going to emit the changed file data into JSON format (that we can easily manipulate using `jq`). When a file is changed, we'll call a new `watch_dotted_test.sh` script:
 
-``` py
+```py
 #!/bin/sh
 
 read event_json
@@ -327,5 +339,4 @@ if [ -f "$test_file" ]; then
 fi
 ```
 
-We now have a functional `watch` mode, speeding up our Engineering work. When a file is changed, we can have an immediate feedback about our changes. 
-
+We now have a functional `watch` mode, speeding up our Engineering work. When a file is changed, we can have an immediate feedback about our changes.
