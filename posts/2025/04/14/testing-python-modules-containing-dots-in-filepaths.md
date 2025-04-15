@@ -1,6 +1,6 @@
 # Testing Python Modules Containing Dot In Filepaths
 
-In the Python ecosystem, pytest stands as the de facto standard for automated testing. Its simplicity, powerful fixture system, and extensive plugin ecosystem make it indispensable for robust and maintainable test suites. Naturally, we chose pytest to write tests for one of our new projects. However, we encountered some challenges related to the use of dots in filepaths.
+`pytest` stands as the de facto standard for automated testing in Python. Its simplicity, its fixture system, and extensive plugins make it the go-to solution for maintainable test suites. Naturally, we chose `pytest` to write tests for one of our new projects. However, we encountered some challenges related to the use of dots in filepaths.
 
 ## The Challenge with Dot-Containing Filepaths
 
@@ -26,9 +26,9 @@ E   ModuleNotFoundError: No module named 'import_data'
 
 The error occurs because the Python interpreter treats dots as delimiters in module names, which are used to separate packages and submodules. In this case, Python misinterprets the intended structure by assuming that `inline_script` is a submodule of the `import_data` package, instead of recognizing `import_data.inline_script` as a single module. Hence the failure.
 
-We confirmed this behavior with the Windmill team. They mentioned that their internal logic uses the `inline_script` naming convention in their internal logic, and they currently have no option for customization. Although this is most likely a temporary issue, we had to devise a workaround, as only fully-tested code makes it to production.
+We confirmed this behavior with the Windmill team. They mentioned that their internal logic uses the `.inline_script` naming convention in their internal logic, and they currently have no option for customization. Although this is most likely a temporary issue, we had to devise a workaround, as only fully-tested code could make it to production.
 
-## Abandonned Solutions
+## Abandoned Solutions
 
 During our exploration, we evaluated three potential approaches. Let's start by reviewing the first two solutions that we ultimately abandoned.
 
@@ -37,16 +37,16 @@ During our exploration, we evaluated three potential approaches. Let's start by 
 
 We won't delve into the implementation details of these two experiments, but we'll explain why we decided to ignore them in favor of the third approach.
 
-If you are only interested by the working solution, here is [a link to the corresponding section](#).
+If you are only interested by the working solution, here is [a quick link](#).
 
 ### Renaming the Files within Pytest
 
-One approach we considered was renaming the files directly within `pytest` using the `pytest_configure` and `pytest_unconfigure` functions, which run before and after the test execution, respectively.
+One approach we considered was renaming the files directly within `pytest`, using the `pytest_configure` and `pytest_unconfigure` functions. They run before and after the test execution, respectively.
 
 ```py
 from pathlib import Path
 
-# Windmill generates files with names like "foo.inline_script.py", but pytest does not accept the extra dot in filenames.
+# Windmill generates files with names like "foo.inline_script.py", but Python does not accept the extra dot in filenames.
 # Therefore, we replace ".inline_script" with "-inline_script" to avoid import issues.
 
 def pytest_configure(config):
@@ -77,7 +77,7 @@ This solution worked well with `pytest`. However, to further enhance our develop
 
 ### Using a Pre-Test Script to Rename Files
 
-Another approach we considered was creating a Bash script to rename all the files before launching the Python tests - whether with `pytest` or `pytest-watch`. Since we use a `Makefile` to start our tests, incorporating pre- and post-renaming steps was straightforward. For example, our Makefile included targets like:
+Another approach we considered was creating a Bash script to rename all the files before launching the Python tests - whether with `pytest` or `pytest-watch`. Since we use a `Makefile` to start our tests, incorporating pre- and post-renaming steps was straightforward. For example, our Makefile includes targets like:
 
 ```Makefile
 test-pre-renaming-hook:
@@ -115,10 +115,10 @@ One might argue that we could dynamically modify the test files during runtime t
 
 ## Importing a Python Module by Filepath (Even With Dots)
 
-The end-goal of this solution is to enable importing a module by its path, like:
+Our end-goal is to enable importing a module by its path, like:
 
 ```py
-module = import_from_file('f/import_flow.flow/import_data.inline-script.py')
+module = import_from_file('f/import_flow.flow/import_data.inline_script.py')
 
 def test_import_data_should_return_true():
     result = module.import_data("file_000.csv")
@@ -141,15 +141,15 @@ def import_from_file(filepath: str):
     return module
 ```
 
-We first start to define a module name for the file we are going to import. It should be unique, and hence, we rely on the filename, replacing all special characters by an `_`. This way, the compiler won't be confused anymore, as neither slashes nor dots are in the module name. For instance, `f/import_flow.flow/import_data.inline-script.py` would be attached to the module `f_import_flow_flow_import_data_inline-script_py`.
+We first define a module name for the file we are going to import. It should be unique, and hence, we rely on the filename, replacing all special characters by an `_`. This way, the compiler won't be confused anymore, as neither slashes nor dots are in the module name. For instance, `f/import_flow.flow/import_data.inline_script.py` would be attached to the module `f_import_flow_flow_import_data_inline_script_py`.
 
-We then need to load the module code into the `module` object. This is done through a three-step process:
+We then need to load the module code into the `module` variable. This is done through a three-step process:
 
 1. Generate the module specs (name, source file, cache information, etc.), via the `spec_from_file_location`,
 2. Create an empty shell for the module based on its spec thanks to the `module_from_spec` function,
 3. Actually run the module code and populate the empty shell, via the `spec.loader.exec_module` function.
 
-Loading a module is not the most straightforward task, but these three lines provides a ready-to-use `module` that we can use into our tests.
+Loading a module is not the most straightforward task, but these three lines provides a ready-to-use `module` object that we can use into our tests.
 
 ### Disabling Pytest Auto-Collection
 
@@ -170,9 +170,9 @@ ERROR f/import_flow.flow/import_data.inline_script_test.py
 ====== 1 error in 0.14s =======
 ```
 
-The penultimate line is the most important one: there is an error during the collection phase. During the test collection phase, `pytest` scans the filesystem for test modules and tries to import them using the standard Python naming conventions. Hence, it chokes even before executing our custom import file, as one of our filenames contains a dot. We have to bypass `pytest` collection phase.
+The penultimate line is the most important one: there is an error during the tests collection phase. During this phase, `pytest` scans the filesystem for test modules and tries to import them using the standard Python naming conventions. Hence, it chokes even before executing our custom import file, as one of our filenames contains a dot.
 
-We didn't find any ways to disable the collection phase. Instead, we are going to create a custom `run_dotted_test.py` script to collect all the tests in a given file:
+We didn't find any ways to disable the collection phase. Instead, we are going to replace it with a custom collection, through a `tests/pytest/run_dotted_test.py` script:
 
 ```py
 import sys
@@ -238,7 +238,7 @@ if __name__ == "__main__":
 
     filepath = sys.argv[1]
     try:
-        mod = import_module_from_file(filepath)
+        mod = import_from_file(filepath)
         result = run_tests(filepath, mod)
         sys.exit(result)
     except Exception:
@@ -269,7 +269,7 @@ Note that we re-created the same function `import_from_file` as the one we have 
 ```py
 from run_dotted_test import import_from_file
 
-module = import_from_file('f/import_flow.flow/import_data.inline-script.py')
+module = import_from_file('f/import_flow.flow/import_data.inline_script.py')
 
 def test_import_data_should_return_true():
     result = module.import_data("file_000.csv")
@@ -278,7 +278,7 @@ def test_import_data_should_return_true():
 
 ### Running All your Project Tests
 
-The previous script runs tests from a single file. To execute tests across all the `*_test.py` files in our project, we can write a shell script:
+The previous script runs tests from a single file. To execute tests across all the `*_test.py` files in our project, we can write some shell:
 
 ```sh
 #!/bin/sh
@@ -296,13 +296,13 @@ done
 exit $exit_code
 ```
 
-This script locates all files ending with `_test.py` and runs them using our custom runner (`run_dotted_test.py`). It also captures any non-zero exit codes—ensuring that if any test fails, the overall exit code reflects the error, triggering a failure in our CI system.
+This script locates all files ending with `_test.py` and runs them using our custom runner (`run_dotted_test.py`). It also captures any non-zero exit codes, ensuring that if any test fails, the overall exit code reflects the error, triggering a failure in our CI system.
 
 We can now run all our tests, even with dot-containing filepaths, by running this script.
 
 ### Watch Mode
 
-To improve the developer experience, we need a watch mode. When running in watch mode, we want to run all the tests from the test file currently edited. We also want to run all the tests when editing the code file associated to this test file.
+To improve the developer experience, we need a watch mode. When running in watch mode, we want to run all the tests from the test file currently edited (eg. `foo_test.py`). We also want to run all the tests when editing the code file associated to this test file (eg. `foo.py`).
 
 Due to similar issues than the `pytest` collection phase, we can't use the `pytest-watch` package. Instead, we are going to leverage the `watchexec` package.
 
@@ -340,3 +340,5 @@ fi
 ```
 
 We now have a functional `watch` mode, speeding up our Engineering work. When a file is changed, we can have an immediate feedback about our changes.
+
+And that's finally the end of this long journey. That's definitely a lot of work for a single extra `.` into our filepaths. Fortunately, this is a one-time setup that we can just forget! 
