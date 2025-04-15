@@ -4,7 +4,7 @@
 
 ## The Challenge with Dot-Containing Filepaths
 
-Our project leverages [Windmill](https://windmill.dev), a modern task orchestrator recommended by our friends at Qovery. However, Windmill exports scripts using filepaths that contain dots, such as `import.flow/import_data.inline_script.py`.
+Our project leverages [Windmill](https://windmill.dev), a modern task orchestrator recommended by our friends at [Qovery](https://www.qovery.com/). However, Windmill exports scripts using filepaths that contain dots, such as `import.flow/import_data.inline_script.py`.
 
 When we attempted to test this module with the following import:
 
