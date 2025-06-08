@@ -3,15 +3,27 @@ layout: default
 ---
 
 <article class="post">
-  <header class="post-header">
-    <h1 class="post-title">{{ page.title }}</h1>
-    <div class="post-meta">
-      <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%B %-d, %Y" }}</time>
-      {% if page.read_time %}
-      <span class="read-time">{{ page.read_time }}</span>
-      {% endif %}
+  {% assign slug = page.url | split: '/' | last %}
+  {% if slug == '' %}
+    {% assign url_parts = page.url | split: '/' %}
+    {% assign slug = url_parts[-2] %}
+  {% endif %}
+  {% assign hero_image = '/assets/images/' | append: slug | append: '/hero.png' | relative_url %}
+  
+  <div class="post-hero">
+    <img src="{{ hero_image }}" alt="{{ page.title }}" class="hero-image">
+    <div class="hero-overlay">
+      <div class="hero-content">
+        <div class="post-meta">
+          <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%B %-d, %Y" }}</time>
+        </div>
+        <h1 class="post-title">{{ page.title }}</h1>
+        {% if page.subtitle %}
+        <p class="post-subtitle">{{ page.subtitle }}</p>
+        {% endif %}
+      </div>
     </div>
-  </header>
+  </div>
 
   <div class="post-content">
     {{ content }}
@@ -20,64 +32,311 @@ layout: default
 
 <style>
 .post {
-  max-width: 800px;
-  margin: 2rem auto;
+  max-width: 1200px;
+  margin: 0 auto;
   background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+}
+
+body.post-page .site-footer {
+  margin-top: 0;
+}
+
+.post-hero {
+  width: 100%;
+  max-width: 1200px;
+  height: 400px;
+  overflow: hidden;
+  position: relative;
+  margin: 0 auto;
+  margin-bottom: 0;
+  
+  .hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  
+  .hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 3rem;
+  }
+  
+  .hero-content {
+    color: white;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    text-align: left;
+  }
+}
+
+.post-content {
+  max-width: 90ch;
+  margin: 0 auto;
+  padding: 3rem 2rem;
 }
 
 .post-header {
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.post-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #1f2937;
-  margin: 0 0 1rem 0;
-  line-height: 1.2;
+  margin-bottom: 3rem;
 }
 
 .post-meta {
   display: flex;
-  justify-content: center;
+  align-items: center;
   gap: 1rem;
-  color: #6b7280;
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  
+  time {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.hero-content .post-title {
+  font-family: "Red Hat Display", arial;
+  font-size: 32px;
+  font-weight: 800;
+  color: white;
+  margin: 0;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  max-width: 600px;
+}
+
+.hero-content .post-subtitle {
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 1rem 0 0 0;
+  line-height: 1.5;
+  font-weight: 400;
 }
 
 .post-content {
   line-height: 1.8;
   color: #374151;
+  font-size: 1.1rem;
 }
 
+.post-content h1,
 .post-content h2,
 .post-content h3,
-.post-content h4 {
+.post-content h4,
+.post-content h5,
+.post-content h6 {
+  font-family: "Red Hat Display", arial;
   color: #1f2937;
-  margin-top: 2rem;
+  font-weight: 600;
+  margin-top: 2.5rem;
   margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.post-content h1 {
+  font-size: 2.25rem;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.post-content h2 {
+  font-size: 1.875rem;
+}
+
+.post-content h3 {
+  font-size: 1.5rem;
+}
+
+.post-content h4 {
+  font-size: 1.25rem;
+}
+
+.post-content p {
+  margin-bottom: 1.5rem;
+}
+
+.post-content ul,
+.post-content ol {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.post-content li {
+  margin-bottom: 0.5rem;
+}
+
+.post-content blockquote {
+  border-left: 4px solid #3b82f6;
+  padding-left: 1.5rem;
+  margin: 2rem 0;
+  font-style: italic;
+  color: #6b7280;
+  background: #f8fafc;
+  padding: 1rem 1.5rem;
+  border-radius: 0 6px 6px 0;
 }
 
 .post-content pre {
-  background: #f3f4f6;
-  border-radius: 6px;
-  padding: 1rem;
+  background: #1f2937;
+  color: #f9fafb;
+  border-radius: 8px;
+  padding: 1.5rem;
   overflow-x: auto;
+  margin: 2rem 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
 }
 
 .post-content code {
   background: #f3f4f6;
+  color: #374151;
   padding: 0.2rem 0.4rem;
-  border-radius: 3px;
+  border-radius: 4px;
   font-size: 0.875rem;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 }
 
 .post-content pre code {
   background: none;
+  color: inherit;
   padding: 0;
+  font-size: inherit;
 }
-</style> 
+
+.post-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.post-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  font-size: 0.875rem;
+}
+
+.post-content th,
+.post-content td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.post-content th {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.post-content a {
+  color: #3b82f6;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.post-content a:hover {
+  border-bottom-color: #3b82f6;
+}
+
+.post-content strong {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .post-hero {
+    width: 100%;
+    max-width: 100vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .post {
+    margin: 0;
+  }
+  
+  .post-hero {
+    height: 300px;
+    width: 100%;
+    max-width: 100vw;
+    
+    .hero-overlay {
+      padding: 2rem 1.5rem;
+      align-items: center;
+      justify-content: flex-start;
+    }
+  }
+  
+  .post-content {
+    padding: 2rem 1.5rem;
+  }
+  
+  .hero-content .post-title {
+    font-family: "Red Hat Display", arial;
+    font-size: 24px;
+    font-weight: 800;
+  }
+  
+  .hero-content .post-subtitle {
+    font-size: 1.125rem;
+  }
+  
+  .post-content {
+    font-size: 1rem;
+  }
+  
+  .post-content h1 {
+    font-size: 1.875rem;
+  }
+  
+  .post-content h2 {
+    font-size: 1.5rem;
+  }
+  
+  .post-content h3 {
+    font-size: 1.25rem;
+  }
+  
+  .post-content pre {
+    padding: 1rem;
+    font-size: 0.8rem;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Make all images in post content clickable and open in new tab
+  const postImages = document.querySelectorAll('.post-content img');
+  
+  postImages.forEach(function(img) {
+    // Skip if image is already wrapped in a link
+    if (img.parentElement.tagName.toLowerCase() === 'a') {
+      return;
+    }
+    
+    // Create wrapper link
+    const link = document.createElement('a');
+    link.href = img.src;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    
+    // Insert link before image and move image inside
+    img.parentNode.insertBefore(link, img);
+    link.appendChild(img);
+  });
+});
+</script> 

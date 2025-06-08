@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- Check your changes on http://localhost:4000 (the server is already started) and iterate until the result is the one expected by the user.

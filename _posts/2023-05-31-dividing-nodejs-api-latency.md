@@ -22,13 +22,13 @@ We've always been monitoring our services as they are perceived from our custome
 
 Recently, we've integrated a few new customers, and while we were prepared and confident about our capacity planning, the higher end of our API latency (P99 and MAX) started to show unexpectedly high values.
 
-![image.png](media_How%20we%20divided%20our%20Node.js%20API%20latency%20by%20leveraging%20our%20Database%20Connection%20Pool/3_xHvRhwBNEbw0-image.png)
+![image.png](/assets/images/dividing-nodejs-api-latency/3_xHvRhwBNEbw0-image.png)
 
 As we investigated the root cause, our customers contacted us about an increasing amount of timeout errors.
 
 Further investigations highlighted that those spikes were due to some SQL queries being slower than usual on a random pattern.
 
-![image.png](media_How%20we%20divided%20our%20Node.js%20API%20latency%20by%20leveraging%20our%20Database%20Connection%20Pool/DoBOrUNZVZmMOH-image.png)
+![image.png](/assets/images/dividing-nodejs-api-latency/DoBOrUNZVZmMOH-image.png)
 
 > **Note**: We're using [Datadog](https://www.datadoghq.com/)  as an observability tool, which has been extremely useful throughout the investigation.
 
@@ -85,7 +85,7 @@ Whenever the query builder needs to perform a query it can either acquire a `FR
 * after a query is run, the pool `release()` it and tag it as `FREE` again,
 * if the connection hasn't been used for a duration called **idle timeout** it's being destroyed.
 
-![image.png](media_How%20we%20divided%20our%20Node.js%20API%20latency%20by%20leveraging%20our%20Database%20Connection%20Pool/1zFhrLVfk1CsET-image.png)
+![image.png](/assets/images/dividing-nodejs-api-latency/1zFhrLVfk1CsET-image.png)
 
 ### Tracking the pool's usage
 
@@ -123,7 +123,7 @@ To our big surprise, the connection pool was far from being full, quite the oppo
 
 Indeed, increasing the maximum number of connections has not helped in this situation.
 
-![image.png](media_How%20we%20divided%20our%20Node.js%20API%20latency%20by%20leveraging%20our%20Database%20Connection%20Pool/ix7T3tQN6G1zQu-image.png)
+![image.png](/assets/images/dividing-nodejs-api-latency/ix7T3tQN6G1zQu-image.png)
 
 There are two pieces of information that are worth noting on the charts above:
 
@@ -263,7 +263,7 @@ If you ever need more connections than that, you can explore other solutions lik
 
 ## Results
 
-![image.png](media_How%20we%20divided%20our%20Node.js%20API%20latency%20by%20leveraging%20our%20Database%20Connection%20Pool/-bIIYORRaPVB46-image.png)
+![image.png](/assets/images/dividing-nodejs-api-latency/-bIIYORRaPVB46-image.png)
 
 Our API requests are no longer opening database connections but just acquiring them.
 
