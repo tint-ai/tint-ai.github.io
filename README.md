@@ -24,7 +24,6 @@ make stop
 layout: post
 title: "Your Post Title"
 date: 2023-12-01
-read_time: "5 min read"
 ---
 ```
 

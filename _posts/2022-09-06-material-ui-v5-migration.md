@@ -2,7 +2,6 @@
 layout: post
 title: "Our experience migrating to Material UI v5"
 date: 2022-09-06
-read_time: "9 min read"
 ---
 
 At Tint, we were using Material UI v4 and decided to migrate to MUI v5 recently.
@@ -11,7 +10,7 @@ Let's benefit from this migration to share our (painful) experience.
 
 In this post, we are going to share how we performed a gradual migration and detail all the pitfalls we faced during the process.
 
-# 🤷 Why upgrade?
+## Why upgrade?
 
 We naturally decided to upgrade to V5 to get the most out of MUI's new features and changes:
 
@@ -22,19 +21,19 @@ We naturally decided to upgrade to V5 to get the most out of MUI's new features 
 
 Moreover, Material UI v4 reached its end of life and is no longer supported by the MUI organization.
 
-![image.png](media_Blog%20post_%20Our%20experience%20migrating%20to%20Material%20UI%20v5/EqvoXeEvQtI_4b-image.png)
+![image.png](/assets/images/material-ui-v5-migration/EqvoXeEvQtI_4b-image.png)
 
 The key words to summarize: **better efficiency**, **more performance**, and **freedom**! [✊](https://emojipedia.org/raised-fist/)
 
 Finally, the new MUI version is also equipped with refreshed design kits ([Figma, Sketch, Adobe XD](https://mui.com/material-ui/discover-more/design-kits/)), for the greatest pleasure of our designers 🤗
 
-# [🧪](https://emojipedia.org/test-tube/) Main Takeaways
+## Main Takeaways
 
 We decided to avoid a big-bang migration to not put the toil on our growing engineering team. The components were migrated little by little, allowing the team to follow each change.
 
 We're recommending following the [official migration guide](https://mui.com/material-ui/migration/migration-v4/) from MUI, we will only focus on a few items that took us a lot of time and wanted to highlight.
 
-## Update MUI Core version
+### Update MUI Core version
 
 The easiest step and the beginning of the hostilities!
 
@@ -56,7 +55,7 @@ However, in our case, we could not use it because our whole application was rely
 
 The `makeStyles` hook is no longer part of the v5 API but is [still available as a helper to ease the migration](https://github.com/mui/material-ui/issues/26571).
 
-### Importing both v4 and v5 in the same app
+#### Importing both v4 and v5 in the same app
 
 Because a migration can be longer depending on the size of your project, **it can be vital to move forward gradually**.
 
@@ -92,11 +91,11 @@ The MUI Theme Provider uses a different React context to dissociate the componen
 
 Thus, we were able to start our migration page per page and each component will be able to recognize its own theme 🙏
 
-## 🕶️ Styling
+### Styling
 
 Now that we've upgraded the core MUI, we can now focus on upgrading our components page per page.
 
-### Bye JSS, welcome Emotion
+#### Bye JSS, welcome Emotion
 
 Material-UI v4 used [JSS](https://cssinjs.org/?v=v10.9.2) as its CSS library. With the new version, they transitioned to [*Emotion*](https://emotion.sh/docs/introduction).
 
@@ -109,7 +108,7 @@ The new MUI version comes with Emotion and styled-components. We choose Emotion,
 
 In any cases, MUI provides the `sx` prop and the  `styled` API as wrappers around Emotion to customize the component styles.
 
-### Injecting CSS with StyledEngineProvider
+#### Injecting CSS with StyledEngineProvider
 
 During the migration, if using both v4 and v5 theme providers, we need to use the `StyledEngineProvider`, in order for MUI to inject Emotion CSS first (over JSS)
 
@@ -127,7 +126,7 @@ export default function GlobalCssPriority() {
 
 Once we are no longer dependent on JSS, the order should be correct and this wrapper could be removed.
 
-### Replacing `makeStyles`
+#### Replacing `makeStyles`
 
 > \[!WARNING]
 > In v5, `makeStyles` are imported from `@mui/styles`, but this lib depends on JSS as a styling solution.
@@ -256,7 +255,7 @@ export default function ToogleBox() {
 
 The particularity of the `sx` is to be able to manage a conditional rendering in all simplicity.
 
-### Theme Customization with TypeScript types
+#### Theme Customization with TypeScript types
 
 We can take advantage of this migration to enhance our theme and easily create new colors, variants, and properties inside and outside the color palette.
 
@@ -300,7 +299,7 @@ declare module '@mui/material/Button' {
 
 \_\_
 
-### Using styles shortcuts
+#### Using styles shortcuts
 
 MUI also has new custom properties shortcuts.
 
@@ -319,7 +318,7 @@ But if you like it, here are a few examples:
 * `pb` => `paddingBottom`
 * etc
 
-## Bonus: The New Stack Component
+### Bonus: The New Stack Component
 
 We also took advantage of the migration to use the new `Stack` component and this one is a blessing.
 
@@ -351,9 +350,9 @@ After :
 
 In addition, there are also some very interesting new components to use: `Skeleton`, `Autocomplete`, la `pagination` and the `loadingButton`.
 
-# ✌️Challenges we faced
+## Challenges we faced
 
-## Codemods that are doing more harm than good
+### Codemods that are doing more harm than good
 
 As seen earlier, we were not recommending the codemod to remove the `makeStyles` hook because it generated too complex code.
 
@@ -381,7 +380,7 @@ The double Grid is not a problem but for our unit tests which are transpiled wit
 > Jest encountered an unexpected token\
 > Jest failed to parse a file. This happens e.g. when your code or its dependencies use non-standard JavaScript syntax, or when Jest is not configured to support such syntax.
 
-## Totally revamped DatePicker
+### Totally revamped DatePicker
 
 MUI lab DatePicker has been totally changed.
 
@@ -395,7 +394,7 @@ Please read more details here: <https://mui.com/material-ui/guides/pickers-migra
 
 This component alone caused a lot of trouble and we're now considering writing our own component for that reason.
 
-## Storybook and MUI v5
+### Storybook and MUI v5
 
 As seen above, MUI uses Emotion to style its components.
 
@@ -432,7 +431,7 @@ module.exports = {
 };
 ```
 
-# [👏](https://emojipedia.org/clapping-hands/)Final words
+## Final words
 
 On a large application, it's easier to import both MUI versions with each theme to migrate it gradually.
 

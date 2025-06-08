@@ -2,7 +2,6 @@
 layout: post
 title: "Dividing Node.js API Latency: Leveraging Our Database Connection Pool"
 date: 2023-05-31
-read_time: "8 min read"
 ---
 
 Having spent a few hours understanding and properly configuring our Database Connection Pool helped us divide our maximum API latency by three.

@@ -2,7 +2,6 @@
 layout: post
 title: "The Evolution of Asynchronous in JavaScript"
 date: 2022-11-03
-read_time: "12 min read"
 ---
 
 # Evolution of asynchronous in JS
