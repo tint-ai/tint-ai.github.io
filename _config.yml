@@ -1,0 +1,32 @@
+title: Tint Technical Blog
+description: Technical blog sharing our Engineering insights helping us to build our Embedded Insurance Platform
+url: ""
+baseurl: ""
+
+markdown: kramdown
+highlighter: rouge
+
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+permalink: /:year/:month/:day/:title/
+
+collections:
+  posts:
+    output: true
+    permalink: /:year/:month/:day/:title/
+
+include: ["_posts/**"]
+
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      excerpt_separator: <!--more-->
+
+sass:
+  sass_dir: _sass
+  style: compressed 
