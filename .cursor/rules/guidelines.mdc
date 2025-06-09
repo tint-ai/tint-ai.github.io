@@ -1,0 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- Assume the Jekyll server is running on http://localhost:4000
+- Jekyll is running through a Docker container `technical-blog-container`
+- Always validate your change checking in your internal browser, and iterate until the result is the one expected by the user.
