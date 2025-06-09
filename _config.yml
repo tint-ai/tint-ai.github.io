@@ -10,12 +10,12 @@ plugins:
   - jekyll-feed
   - jekyll-sitemap
 
-permalink: /:year/:month/:day/:title/
+permalink: /:title/
 
 collections:
   posts:
     output: true
-    permalink: /:year/:month/:day/:title/
+    permalink: /:title/
 
 include: ["_posts/**"]
 
