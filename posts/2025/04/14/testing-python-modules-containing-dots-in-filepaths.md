@@ -304,7 +304,7 @@ We can now run all our tests, even with dot-containing filepaths, by running thi
 
 To improve the developer experience, we need a watch mode. When running in watch mode, we want to run all the tests from the test file currently edited (eg. `foo_test.py`). We also want to run all the tests when editing the code file associated to this test file (eg. `foo.py`).
 
-Due to similar issues than the `pytest` collection phase, we can't use the `pytest-watch` package. Instead, we are going to leverage the `watchexec` package.
+Due to similar issues as the `pytest` collection phase, we can't use the `pytest-watch` package. Instead, we are going to leverage the `watchexec` package.
 
 ```sh
 watchexec --exts py \
