@@ -172,7 +172,7 @@ ERROR f/import_flow.flow/import_data.inline_script_test.py
 
 The penultimate line is the most important one: there is an error during the tests collection phase. During this phase, `pytest` scans the filesystem for test modules and tries to import them using the standard Python naming conventions. Hence, it chokes even before executing our custom import file, as one of our filenames contains a dot.
 
-We didn't find any ways to disable the collection phase. Instead, we are going to replace it with a custom collection, through a `tests/pytest/run_dotted_test.py` script:
+We didn't find a way to disable the collection phase. Instead, we are going to replace it with a custom collection, through a `tests/pytest/run_dotted_test.py` script:
 
 ```py
 import sys
