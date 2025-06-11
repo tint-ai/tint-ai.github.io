@@ -37,7 +37,7 @@ During our exploration, we evaluated three potential approaches. Let's start by 
 
 We won't delve into the implementation details of these two experiments, but we'll explain why we decided to ignore them in favor of the third approach.
 
-If you are only interested by the working solution, here is [a quick link](#).
+If you are only interested by the working solution, you can [jump to the solution](#solution).
 
 ### Renaming the Files within Pytest
 
