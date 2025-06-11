@@ -129,7 +129,7 @@ Let's implement this function.
 
 ### Import a Module from its Filepath
 
-For now, let's define this function directly into our test file. We'll extract it at a higher-level later.
+For now, let's define this function directly in our test file. We'll extract it at a higher-level later.
 
 ```py
 def import_from_file(filepath: str):
