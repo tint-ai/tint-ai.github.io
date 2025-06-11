@@ -264,7 +264,7 @@ Which produces an output similar to:
 
 ![Image](./test-output.png)
 
-Note that we re-created the same function `import_from_file` as the one we have defined into our test file. To keep our code DRY, we can use our `run_dotted_tests` module instead:
+Note that we re-created the same function `import_from_file` as the one we have defined in our test file. To keep our code DRY, we can use our `run_dotted_tests` module instead:
 
 ```py
 from run_dotted_test import import_from_file
