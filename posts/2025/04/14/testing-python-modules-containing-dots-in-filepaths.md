@@ -260,7 +260,7 @@ We can now run our test using the command:
 python run_dotted_test.py f/import_flow.flow/import_data.inline_script_test.py
 ```
 
-Which produce an output similar to:
+Which produces an output similar to:
 
 ![Image](./test-output.png)
 
