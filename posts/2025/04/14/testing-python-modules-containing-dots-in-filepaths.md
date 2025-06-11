@@ -26,7 +26,7 @@ E   ModuleNotFoundError: No module named 'import_data'
 
 The error occurs because the Python interpreter treats dots as delimiters in module names, which are used to separate packages and submodules. In this case, Python misinterprets the intended structure by assuming that `inline_script` is a submodule of the `import_data` package, instead of recognizing `import_data.inline_script` as a single module. Hence the failure.
 
-We confirmed this behavior with the Windmill team. They mentioned that their internal logic uses the `.inline_script` naming convention in their internal logic, and they currently have no option for customization. Although this is most likely a temporary issue, we had to devise a workaround, as only fully-tested code could make it to production.
+We confirmed this behavior with the Windmill team. They mentioned that their internal logic uses the `.inline_script` naming convention, and they currently have no option for customization. Although this is most likely a temporary issue, we had to devise a workaround, as only fully-tested code could make it to production.
 
 ## Abandoned Solutions
 
