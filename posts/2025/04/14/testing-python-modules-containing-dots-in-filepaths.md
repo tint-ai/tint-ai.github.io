@@ -149,7 +149,7 @@ We then need to load the module code into the `module` variable. This is done th
 2. Create an empty shell for the module based on its spec thanks to the `module_from_spec` function,
 3. Actually run the module code and populate the empty shell, via the `spec.loader.exec_module` function.
 
-Loading a module is not the most straightforward task, but these three lines provides a ready-to-use `module` object that we can use into our tests.
+Loading a module is not the most straightforward task, but these three lines provide a ready-to-use `module` object that we can use into our tests.
 
 ### Disabling Pytest Auto-Collection
 
