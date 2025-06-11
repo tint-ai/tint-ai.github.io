@@ -247,7 +247,7 @@ if __name__ == "__main__":
         sys.exit(1)
 ```
 
-This code is quite verbose, due to the output formatting. But it could be boiled down to two steps:
+This code is quite verbose, due to the output formatting. But it boils down to two steps:
 
 1. Import the module from the filepath,
 2. Collect and run all the functions starting with `test_` in this file.
