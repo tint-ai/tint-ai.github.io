@@ -113,7 +113,7 @@ This solution is not intuitive and introduces unnecessary friction for our Engin
 
 One might argue that we could dynamically modify the test files during runtime to update the import statements. However, this approach would significantly increase complexity and introduce potential race conditions that we are keen to avoid. Ultimately, although the solution might work in theory, its complexity and maintenance cost were too high to justify its implementation.
 
-## Importing a Python Module by Filepath (Even With Dots)
+## Solution: Importing a Python Module by Filepath (Even With Dots) {#solution}
 
 Our end-goal is to enable importing a module by its path, like:
 
