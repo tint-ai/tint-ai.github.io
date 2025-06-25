@@ -1,4 +1,8 @@
-# Testing Python Modules Containing Dot In Filepaths
+---
+layout: post
+title: "Testing Python Modules Containing Dot In Filepaths"
+date: 2023-05-31
+---
 
 `pytest` stands as the de facto standard for automated testing in Python. Its simplicity, its fixture system, and extensive plugins make it the go-to solution for maintainable test suites. Naturally, we chose `pytest` to write tests for one of our new projects. However, we encountered some challenges related to the use of dots in filepaths.
 
@@ -262,7 +266,7 @@ python run_dotted_test.py f/import_flow.flow/import_data.inline_script_test.py
 
 Which produces an output similar to:
 
-![Image](./test-output.png)
+![Image](/assets/images/testing-python-modules-containing-dots-in-filepaths/test-output.png)
 
 Note that we re-created the same function `import_from_file` as the one we have defined in our test file. To keep our code DRY, we can use our `run_dotted_tests` module instead:
 
