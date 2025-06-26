@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Testing Python Modules Containing Dot In Filepaths"
-date: 2023-05-31
+date: 2025-06-16
 ---
 
 `pytest` stands as the de facto standard for automated testing in Python. Its simplicity, its fixture system, and extensive plugins make it the go-to solution for maintainable test suites. Naturally, we chose `pytest` to write tests for one of our new projects. However, we encountered some challenges related to the use of dots in filepaths.
