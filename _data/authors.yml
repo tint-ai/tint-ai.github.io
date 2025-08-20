@@ -1,0 +1,24 @@
+# Authors data file
+# Each author is identified by their email address
+# The email will be used to generate Gravatar URLs
+
+jonathan@tint.ai:
+  name: Jonathan Petitcolas
+  title: Engineering Platform Lead
+  bio: I'm dedicated to making our engineers' lives a breeze, building tools, systems, and processes that empower them to ship faster, safer, and with greater confidence.
+  gravatar_hash: 74d4c007d7af8de2daf47e7961756c5d
+
+kevin@tint.ai:
+  name: Kévin Maschtaller
+  title: Software Engineer
+  gravatar_hash: acdfa1e54566c9eee9ce5088b149c11a
+
+thiery@tint.ai:
+  name: Thiery Michel
+  title: Software Engineer
+  gravatar_hash: daa97ddb87b15c6209c473b30ef12f0a
+
+zoe@tint.ai:
+  name: Zoé Carvallo Figueroa
+  title: Software Engineer
+  gravatar_hash: 25a6ceabdd03bb4022059bb14485e7a1

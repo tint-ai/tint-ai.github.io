@@ -19,6 +19,10 @@ layout: default
       <div class="card-content">
         <div class="post-meta">
           <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%b %-d, %Y" }}</time>
+          {% if post.author and site.data.authors[post.author] %}
+            <span class="meta-separator">•</span>
+            <span class="post-author">{{ site.data.authors[post.author].name }}</span>
+          {% endif %}
         </div>
         
         <h2 class="post-title">{{ post.title }}</h2>

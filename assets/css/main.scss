@@ -234,14 +234,11 @@ p {
 .post-meta {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
   font-size: 0.875rem;
-  color: #6b7280;
-  
-  time {
-    font-weight: 500;
-  }
+  color: #adb3bc;
   
   .read-time {
     position: relative;
@@ -255,7 +252,7 @@ p {
 }
 
 .post-title {
-  margin: 0 0 1rem 0;
+  margin: 0 0 0 0;
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.4;
@@ -320,3 +317,84 @@ p {
     padding: 1rem;
   }
 } 
+
+
+.author-card {
+  border: 10px solid red;
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 1.5rem 2.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f0f0f0;
+
+  .author-section-title {
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #4b5563;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0 0 1rem 0;
+
+    @media (min-width: 768px) {
+      text-align: left;
+    }
+  }
+
+  .author-info {  
+    @media (min-width: 768px) {
+      display: flex;
+      gap: 1.25rem;
+      align-items: center;
+    }
+  } 
+
+  .author-avatar {
+    margin: 1.5rem auto;
+    display: block;
+    width: 128px;
+    height: 128px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .author-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .author-name {
+    text-align: center;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 0.1rem 0;
+    letter-spacing: -0.025em;
+
+    @media (min-width: 768px) {
+      text-align: left;
+    }
+  }
+
+  .author-title {
+    text-align: center;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: #9ca3af;
+    margin: 0 0 0.4rem 0;
+
+    @media (min-width: 768px) {
+      text-align: left;
+    }
+  }
+
+  .author-bio {
+    color: #4b5563;
+    margin: 0;
+    line-height: 1.6;
+    font-size: 0.875rem;
+    max-width: 70ch;
+  }
+}

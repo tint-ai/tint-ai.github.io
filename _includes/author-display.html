@@ -1,0 +1,37 @@
+{% comment %}
+  Display author information
+  Usage: {% include author-display.html author_email=page.author show_bio=true %}
+  
+  Parameters:
+  - author_email: The email address of the author
+  - show_bio: Whether to show the author bio (default: true)
+  - avatar_size: Size of the Gravatar avatar (default: 60)
+{% endcomment %}
+
+{% if include.author_email %}
+  {% assign author = site.data.authors[include.author_email] %}
+  {% if author %}
+    {% assign show_bio = include.show_bio | default: true %}
+    {% assign avatar_size = include.avatar_size | default: 128 %}
+    
+    <div class="author-section">
+      <div class="author-card">
+        <h5 class="author-section-title">About the author</h5>
+        <div class="author-info">
+          <img src="{%- include gravatar.html email=include.author_email size=avatar_size -%}" 
+               alt="{{ author.name }}" 
+               class="author-avatar">
+          <div class="author-details">
+            <h4 class="author-name">{{ author.name }}</h4>
+            {% if author.title %}
+              <p class="author-title">{{ author.title }}</p>
+            {% endif %}
+            {% if show_bio and author.bio %}
+              <p class="author-bio">{{ author.bio }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endif %}

@@ -1,6 +1,6 @@
 IMAGE_NAME := technical-blog
 CONTAINER_NAME := technical-blog-container
-PORT := 4000
+PORT ?= 4000
 
 install:
 	docker build -t $(IMAGE_NAME) .
@@ -9,8 +9,9 @@ start: install
 	@echo "Starting Jekyll blog..."
 	@docker run -d \
 		--name $(CONTAINER_NAME) \
-		-p $(PORT):4000 \
+		-p $(PORT):$(PORT) \
 		-v $(PWD):/app \
+		-e PORT=$(PORT) \
 		$(IMAGE_NAME)
 	@echo "Blog is running at http://localhost:$(PORT)"
 

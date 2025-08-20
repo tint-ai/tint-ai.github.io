@@ -2,6 +2,7 @@
 layout: post
 title: "Dividing Node.js API Latency: Leveraging Our Database Connection Pool"
 date: 2023-05-31
+author: kevin@tint.ai
 ---
 
 Having spent a few hours understanding and properly configuring our Database Connection Pool helped us divide our maximum API latency by three.

@@ -2,6 +2,7 @@
 layout: post
 title: "Our experience migrating to Material UI v5"
 date: 2022-09-06
+author: zoe@tint.ai
 ---
 
 At Tint, we were using Material UI v4 and decided to migrate to MUI v5 recently.

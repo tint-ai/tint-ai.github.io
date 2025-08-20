@@ -26,9 +26,48 @@ layout: default
   </div>
 
   <div class="post-content">
-    {{ content }}
+    <div class="content-wrapper">
+      {{ content }}
+    </div>
+
+    {% if page.author %}
+      <div class="post-author-section">
+        {% include author-display.html author_email=page.author show_bio=true avatar_size=80 %}
+      </div>
+    {% endif %}
   </div>
 </article>
+
+{% if page.author and site.data.authors[page.author] %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "{{ page.title | escape }}",
+  "datePublished": "{{ page.date | date_to_xmlschema }}",
+  "dateModified": "{{ page.date | date_to_xmlschema }}",
+  "author": {
+    "@type": "Person",
+    "name": "{{ site.data.authors[page.author].name | escape }}",
+    "email": "{{ page.author | escape }}",
+    "image": "{%- include gravatar.html email=page.author size=200 -%}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Tint Technologies Inc.",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{ '/assets/images/tint-logo.svg' | absolute_url }}"
+    }
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "{{ page.url | absolute_url }}"
+  },
+  "image": "{{ '/assets/images/' | append: page.url | remove: '/' | append: '/hero.png' | absolute_url }}"
+}
+</script>
+{% endif %}
 
 <style>
 .post {
@@ -323,6 +362,12 @@ body.post-page .site-footer {
   color: #1f2937;
 }
 
+/* Author styles */
+.post-author-section {
+  margin-top: 4rem;
+  padding: 0;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1200px) {
   .post-hero {
@@ -382,13 +427,17 @@ body.post-page .site-footer {
     padding: 1rem;
     font-size: 0.8rem;
   }
+  
+  .post-author-section {
+    margin-top: 3rem;
+  }
 }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   // Make all images in post content clickable and open in new tab
-  const postImages = document.querySelectorAll('.post-content img');
+  const postImages = document.querySelectorAll('.content-wrapper img');
   
   postImages.forEach(function(img) {
     // Skip if image is already wrapped in a link
