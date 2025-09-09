@@ -1,0 +1,19 @@
+{% comment %}
+  Generate a Gravatar URL from an email address
+  Usage: {% include gravatar.html email="user@example.com" size=80 %}
+  
+  Parameters:
+  - email: The email address to generate the Gravatar for
+  - size: The size of the avatar in pixels (default: 80)
+{% endcomment %}
+
+{%- assign size = include.size | default: 80 -%}
+{%- assign clean_email = include.email | downcase | strip -%}
+{%- assign author = site.data.authors[clean_email] -%}
+{%- if author and author.gravatar_hash -%}
+  {%- assign email_hash = author.gravatar_hash -%}
+{%- else -%}
+  {%- comment %} Fallback to URL-encoded email if no hash found {%- endcomment -%}
+  {%- assign email_hash = clean_email | url_encode -%}
+{%- endif -%}
+https://www.gravatar.com/avatar/{{ email_hash }}?s={{ size }}&d=mp
