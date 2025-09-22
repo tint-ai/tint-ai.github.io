@@ -2,6 +2,7 @@
 layout: post
 title: "The 3-5x Factor: Measuring the Real Impact of AI on Engineering Teams"
 date: 2025-09-08
+author: jonathan@tint.ai
 ---
 
 Having spent two months transforming our engineering workflow with AI, we've measured a 3-5x increase in development velocity — and yes, we have the data to prove it. Our engineers now ship 211% more commits, deliver 142% more features, and maintain code quality while doing it.
