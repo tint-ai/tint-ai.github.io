@@ -22,4 +22,4 @@ COPY . .
 EXPOSE 4000
 
 # Start Jekyll server
-CMD ["sh", "-c", "bundle exec jekyll serve --host 0.0.0.0 --port ${PORT:-4000} --livereload"] 
+CMD ["sh", "-c", "bundle exec jekyll serve --host 0.0.0.0 --port ${PORT:-4000} --livereload"]
