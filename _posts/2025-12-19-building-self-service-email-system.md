@@ -18,7 +18,7 @@ We recently shipped a solution that changed everything: 15-second average turnar
 
 Our users often need to add alternate email addresses for logging into Tint's Protection Portal. Maybe they didn't have or want to access their primary email with their organization, or they just wanted a backup login method. Reasonable request.
 
-But our implementation made it painful. We maintained a hardcoded list of alternate emails directly in our codebase. Why? Well, as a startup, sometimes we have to move _fast_. And that sometimes that means we have to follow the **KISS** principle, implementing the most simple solution and refactoring later when needed.
+But our implementation made it painful. We maintained a hardcoded list of alternate emails directly in our codebase. Why? Well, as a startup, sometimes we have to move _fast_. And sometimes that means we have to follow the **KISS** principle, implementing the most simple solution and refactoring later when needed.
 
 Unfortunately though, this simple approach meant that when a user needed to add an alternate email, they had to contact support.
 
@@ -67,7 +67,7 @@ It sounds counterintuitive—and honestly, it felt weird at first—but it solve
 
 1. Each email gets its own Stytch member with proper verification
 2. We can use Stytch's standard verification flow without workarounds
-3. Each email is independently verifiable and deletableP
+3. Each email is independently verifiable and deletable.
 
 To maintain the relationship between Tint's user concept (one user, many emails) and Stytch's member concept (one member, one email), we needed a mapping layer. We chose DynamoDB to store these mappings, which we'll explain in detail later.
 
@@ -783,7 +783,7 @@ Since launching on October 27, 2025, the results have exceeded our expectations.
 
 #### Weekly Email Additions Since Launch
 
-![Graph showing alternate emails added email since launch](/assets/images/building-self-service-email-system/emails-added-since-launch.png)
+![Graph showing alternate emails added since launch](/assets/images/building-self-service-email-system/emails-added-since-launch.png)
 
 <div style="background: #f8fafc; border-left: 4px solid #3b82f6; padding: 1rem 1.25rem; margin: 1rem 0; border-radius: 4px; font-size: 0.9rem; color: #475569;">
 Weekly count of alternate emails added since the self-service feature launched on October 27, 2025. The spike during launch week reflects initial adoption driven by an in-app banner announcement.
