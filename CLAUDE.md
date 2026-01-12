@@ -35,18 +35,12 @@ jekyll serve --host 0.0.0.0 --watch --force_polling --livereload
 
 ### Adding New Blog Posts
 
-1. Create a new file in `_posts/` with format: `YYYY-MM-DD-your-post-slug.md`
-2. Add required front matter:
-```yaml
----
-layout: post
-title: "Your Post Title"
-date: YYYY-MM-DD
-author: Author Name
----
-```
-3. Add hero image at `assets/images/your-post-slug/hero.png`
-4. Use `<!--more-->` to separate excerpt from full content
+See [README.md](README.md) for detailed instructions on adding blog posts.
+
+**Critical requirements:**
+- The `author` field in post front matter must be an email address (e.g., `author: user@tint.ai`), NOT a display name
+- Authors must be defined in `_data/authors.yml` before creating posts
+- Two hero images are required: `hero.png` (main) and `hero-social.png` (1200x630px for social media)
 
 ### Important Configuration
 

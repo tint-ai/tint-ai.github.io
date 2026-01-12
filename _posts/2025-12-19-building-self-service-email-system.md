@@ -43,8 +43,6 @@ But the operational pain was only part of the problem. We were storing PII in ou
 
 We needed to fix this.
 
-_A quick note: All example emails and user IDs in this post are completely fictitious._
-
 ## What We Tried First: The B2C API Detour
 
 When we started investigating solutions, Stytch (our authentication provider) seemed like the obvious choice. They handle email verification via magic links, which we already use for login. Perfect, right?
