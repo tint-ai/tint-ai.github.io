@@ -156,7 +156,7 @@ We created a `user_alternate_emails` table with careful attention to performance
 
 ```sql
 CREATE TABLE public.user_alternate_emails (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v7(),
     user_external_id TEXT NOT NULL,
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     email VARCHAR(255) NOT NULL,
