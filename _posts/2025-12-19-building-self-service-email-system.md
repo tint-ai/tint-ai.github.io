@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "46,000x Faster: How We Built Self-Service Email Management"
-date: 2025-12-19
+date: 2026-01-12
 author: jahkell.lazarre@tint.ai
 hero_image: "/assets/images/building-self-service-email-system/hero.png"
 ---
