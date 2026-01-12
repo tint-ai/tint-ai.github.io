@@ -2,7 +2,7 @@
 layout: post
 title: "46,000x Faster: How We Built Self-Service Email Management"
 date: 2025-12-19
-author: Jahkell Lazarre
+author: jahkell.lazarre@tint.ai
 hero_image: "/assets/images/building-self-service-email-system/hero.png"
 ---
 
@@ -36,12 +36,14 @@ The numbers tell the story:
 - **Fastest resolution**: 3 hours
 - **Slowest resolution**: 28.53 days
 - **Support ticket volume**: ~2.46 tickets per month (33 tickets over 13 months)
-- **Total manual additions**: 71+ emails across 34 PRs
+- **Total manual additions**: 70+ emails across 34 PRs
 - **Average emails per ticket**: 2.15
 
 But the operational pain was only part of the problem. We were storing PII in our codebase (security risk), alternate emails weren't visible to operations (impossible to troubleshoot), and the entire process required engineering time for what should be self-service.
 
 We needed to fix this.
+
+_A quick note: All example emails and user IDs in this post are completely fictitious._
 
 ## What We Tried First: The B2C API Detour
 
@@ -77,6 +79,26 @@ The final system has four key components:
 2. **Stytch integration** for email verification via magic links
 3. **Self-service UI** in the Protection Portal (built with Next.js) for email management
 4. **Internal authentication service** (built with Remix) to orchestrate verification and handle Stytch operations
+
+## The Self-Service Interface
+
+Users manage their alternate emails through a clean, intuitive interface in the Protection Portal. The UI shows all their verified emails, pending verifications, and provides clear actions for adding or removing emails.
+
+![Login details interface showing alternate email management](/assets/images/building-self-service-email-system/login-details.png)
+
+<div style="background: #f8fafc; border-left: 4px solid #3b82f6; padding: 1rem 1.25rem; margin: 1rem 0; border-radius: 4px; font-size: 0.9rem; color: #475569;">
+The interface displays the user's primary email (linked to their organization) and any alternate login emails. In this example, one alternate email is verified and can be removed using the delete button.
+</div>
+
+In edit mode, users have full control over their login credentials:
+
+- **Add new alternate emails** - Add up to 5 alternate emails with instant validation
+- **Delete verified emails** - Remove any verified alternate email with a single click
+- **Resend verification links** - Request a new magic link for unverified emails if the original expired or wasn't received
+
+The Save button commits all changes, while Cancel discards pending actions and exits edit mode.
+
+This gives users complete visibility and control over their login credentials without needing to contact support.
 
 Let's dive into how we built each piece.
 
@@ -192,7 +214,7 @@ CREATE UNIQUE INDEX idx_user_alternate_emails_org_email_verified
 
 ## Repository Layer: Atomic Operations and Idempotency
 
-The repository layer provides a clean interface for email operations while ensuring data consistency. Here are the key method signatures:
+The repository layer provides a clean interface for email operations while ensuring data consistency. We use Drizzle ORM for type-safe database queries and schema management. Here are the key method signatures:
 
 ```typescript
 export const userAlternateEmailsRepository = {
@@ -225,68 +247,40 @@ The full implementation details are provided below.
 ```typescript
 export const userAlternateEmailsRepository = {
   // Insert with automatic email normalization
-  async insert(data: {
-    userExternalId: string;
-    organizationId: string;
-    email: string;
-    externalEmailId?: string | null;
-  }) {
+  async insert(data) {
     const emailLowercase = data.email.toLowerCase();
-
-    return await dbClient
-      .insert(userAlternateEmails)
-      .values({
-        ...data,
-        emailLowercase,
-      })
-      .returning();
+    // Insert record with normalized email
+    return await db.insert({ ...data, emailLowercase });
   },
 
   // Atomic verification - only marks if currently unverified
   async markEmailAsVerified(id: string, externalEmailId: string) {
-    const result = await dbClient
-      .update(userAlternateEmails)
-      .set({
+    // Update only if: id matches AND verifiedAt IS NULL AND deletedAt IS NULL
+    const result = await db
+      .update({
         verifiedAt: new Date(),
         externalEmailId,
-        updatedAt: new Date(),
       })
-      .where(
-        and(
-          eq(userAlternateEmails.id, id),
-          isNull(userAlternateEmails.verifiedAt), // Only if unverified
-          isNull(userAlternateEmails.deletedAt) // Only if not deleted
-        )
-      )
-      .returning();
+      .where({ id, verifiedAt: null, deletedAt: null });
 
     if (result.length === 0) {
-      throw new Error("Email not found, already verified, or deleted");
+      throw new Error("Unable to verify email");
     }
-
     return result[0];
   },
 
   // Atomic soft delete - only deletes if not already deleted
   async delete(id: string) {
-    const result = await dbClient
-      .update(userAlternateEmails)
-      .set({
+    // Update only if deletedAt IS NULL
+    const result = await db
+      .update({
         deletedAt: new Date(),
-        updatedAt: new Date(),
       })
-      .where(
-        and(
-          eq(userAlternateEmails.id, id),
-          isNull(userAlternateEmails.deletedAt) // Only if not already deleted
-        )
-      )
-      .returning();
+      .where({ id, deletedAt: null });
 
     if (result.length === 0) {
-      throw new Error("Email not found or already deleted");
+      throw new Error("Unable to delete email");
     }
-
     return result[0];
   },
 
@@ -295,15 +289,13 @@ export const userAlternateEmailsRepository = {
     email: string,
     organizationId: string
   ) {
-    const emailLowercase = email.toLowerCase();
-
-    return await dbClient.query.userAlternateEmails.findFirst({
-      where: and(
-        eq(userAlternateEmails.organizationId, organizationId),
-        eq(userAlternateEmails.emailLowercase, emailLowercase),
-        isNotNull(userAlternateEmails.verifiedAt),
-        isNull(userAlternateEmails.deletedAt)
-      ),
+    return await db.findFirst({
+      where: {
+        organizationId,
+        emailLowercase: email.toLowerCase(),
+        verifiedAt: notNull,
+        deletedAt: null,
+      },
     });
   },
 };
@@ -424,55 +416,45 @@ export async function addAlternateEmail(
   verifyRedirectUrl: string
 ) {
   // Validate email format
-  const validationResult = validateEmail(email);
-  if (!validationResult.success) {
+  if (!validateEmail(email)) {
     return { success: false, error: "Invalid email format" };
   }
 
-  // Check if user already has max emails (5)
-  const existingEmails =
-    await userAlternateEmailsRepository.findByUserExternalIdAndOrganizationId(
-      userExternalId,
-      organizationId
-    );
-
-  if (existingEmails.length >= 5) {
+  // Check limit (max 5 alternate emails)
+  const existingCount = await getExistingEmailCount(
+    userExternalId,
+    organizationId
+  );
+  if (existingCount >= 5) {
     return { success: false, error: "Maximum of 5 alternate emails allowed" };
   }
 
-  // Check if email is available
-  const isAvailable = await usersRepository.isEmailAvailable(
+  // Check if email is available (not used by another account)
+  const isAvailable = await isEmailAvailable(
     userExternalId,
     email,
     organizationId
   );
-
   if (!isAvailable) {
-    return {
-      success: false,
-      error: "This email is already associated with another account",
-    };
+    return { success: false, error: "Unable to add this email..." };
   }
 
-  // Insert unverified email
-  const [alternateEmail] = await userAlternateEmailsRepository.insert({
+  // Insert unverified email record
+  const alternateEmail = await repository.insert({
     userExternalId,
     organizationId,
     email,
   });
 
-  // Send verification email via authentication service
-  await authenticationClient.sendVerificationEmail({
+  // Trigger verification email via auth service
+  await authClient.sendVerificationEmail({
     email,
     userId: userExternalId,
     organizationId,
     verifyRedirectUrl,
   });
 
-  return {
-    success: true,
-    alternateEmailId: alternateEmail.id,
-  };
+  return { success: true, alternateEmailId: alternateEmail.id };
 }
 ```
 
@@ -480,13 +462,14 @@ export async function addAlternateEmail(
 
 ### Verifying an Email
 
-The verification flow involves multiple services. When a user clicks the magic link in their email:
+The verification flow involves multiple services working together. When a user clicks the magic link in their email:
 
-1. Stytch authenticates the magic link
-2. Tint's authentication service validates the Stytch response
-3. Auth service generates a cryptographically signed token
-4. User is redirected back to the Protection Portal with the signed token
-5. Protection Portal validates the signature and marks the email as verified
+1. **Magic link redirects to auth service**: The Stytch magic link directs the user to our authentication service
+2. **Stytch validation**: The auth service calls Stytch's API to validate the magic link token is legitimate and hasn't expired
+3. **Session establishment**: After successful validation, the auth service generates an HTTP-only cookie with a signed JWT that identifies the user across all Tint domains
+4. **Signed verification data**: The auth service creates a cryptographically signed payload containing the user ID, organization ID, email, and Stytch member ID
+5. **Redirect to Protection Portal**: The user is redirected back to the Protection Portal with the signed data
+6. **Final verification**: The Protection Portal validates the signature, performs a second availability check to prevent race conditions, then atomically marks the email as verified in the database
 
 <details markdown="1">
 <summary>verifyEmailCallback Server Action</summary>
@@ -495,7 +478,7 @@ The verification flow involves multiple services. When a user clicks the magic l
 "use server";
 
 export async function verifyEmailCallback(signedData: string) {
-  // Validate cryptographic signature to ensure data integrity
+  // Validate cryptographic signature
   const payload = validateSignedData(signedData);
   if (!payload) {
     return { success: false, error: "Invalid or expired verification link" };
@@ -504,43 +487,25 @@ export async function verifyEmailCallback(signedData: string) {
   const { userId, organizationId, email, externalEmailId } = payload;
 
   // Find the unverified email record
-  const unverifiedEmail = await userAlternateEmailsRepository
-    .findByUserExternalIdAndOrganizationId(userId, organizationId)
-    .then((emails) =>
-      emails.find(
-        (e) => e.email.toLowerCase() === email.toLowerCase() && !e.verifiedAt
-      )
-    );
-
+  const unverifiedEmail = await findUnverifiedEmail(
+    userId,
+    organizationId,
+    email
+  );
   if (!unverifiedEmail) {
-    return {
-      success: false,
-      error: "Email not found or already verified",
-    };
+    return { success: false, error: "Email not found or already verified" };
   }
 
-  // Re-check availability before verifying (prevents race conditions)
-  const isAvailable = await usersRepository.isEmailAvailable(
-    userId,
-    email,
-    organizationId
-  );
-
+  // Re-check availability (prevents race conditions)
+  const isAvailable = await isEmailAvailable(userId, email, organizationId);
   if (!isAvailable) {
     // Email was claimed by another user during verification
-    // Clean up the unverified record
-    await userAlternateEmailsRepository.delete(unverifiedEmail.id);
-    return {
-      success: false,
-      error: "This email was claimed by another user",
-    };
+    await repository.delete(unverifiedEmail.id);
+    return { success: false, error: "Unable to verify this email..." };
   }
 
   // Mark as verified atomically
-  await userAlternateEmailsRepository.markEmailAsVerified(
-    unverifiedEmail.id,
-    externalEmailId
-  );
+  await repository.markEmailAsVerified(unverifiedEmail.id, externalEmailId);
 
   return { success: true };
 }
@@ -562,37 +527,26 @@ export async function deleteAlternateEmail(
   organizationId: string
 ) {
   // Verify ownership
-  const email = await userAlternateEmailsRepository.getById(emailId);
-  if (!email) {
-    return { success: false, error: "Email not found" };
-  }
-
+  const email = await repository.getById(emailId);
   if (
+    !email ||
     email.userExternalId !== userExternalId ||
     email.organizationId !== organizationId
   ) {
-    return { success: false, error: "Unauthorized" };
+    return { success: false, error: "Unable to delete email" };
   }
 
   // Soft delete in database (source of truth)
-  await userAlternateEmailsRepository.delete(emailId);
+  await repository.delete(emailId);
 
-  // Best-effort cleanup in Stytch
-  // Non-blocking - we don't fail if this errors
+  // Best-effort cleanup in Stytch (non-blocking)
   if (email.externalEmailId) {
     try {
-      await authenticationClient.deleteEmail(
-        email.externalEmailId,
-        organizationId
-      );
+      await authClient.deleteEmail(email.externalEmailId, organizationId);
     } catch (error) {
-      console.warn(
-        "Failed to delete email from Stytch, but DB delete succeeded:",
-        error
-      );
+      console.warn("Stytch cleanup failed, but database delete succeeded");
       // Don't throw - deletion already succeeded in our database
-      // We maintain a manual cleanup process to periodically reconcile
-      // orphaned Stytch members with our database
+      // Periodic cleanup job handles orphaned Stytch members
     }
   }
 
@@ -635,50 +589,35 @@ export async function sendVerificationEmail({
   userId,
   organizationId,
   verifyRedirectUrl,
-}: {
-  email: string;
-  userId: string;
-  organizationId: string;
-  verifyRedirectUrl: string;
 }) {
-  // Map Tint organization ID to Stytch organization ID
+  // Map Tint organization to Stytch organization
   const stytchOrgId = await getStytchOrganizationId(organizationId);
 
-  // Check if member already exists in Stytch for this email
+  // Check if Stytch member already exists for this email
   let stytchMemberId = await getStytchMemberIdForEmail(email, stytchOrgId);
 
   // Create member if doesn't exist
   if (!stytchMemberId) {
-    const member = await stytchClient.b2b.organizations.members.create({
-      organization_id: stytchOrgId,
-      email_address: email,
-      name: userId, // Use Tint user ID as name for reference
+    const member = await createStytchMember({
+      organizationId: stytchOrgId,
+      email,
+      userId, // Reference for lookup
     });
-    stytchMemberId = member.member.member_id;
+    stytchMemberId = member.id;
 
-    // Store mapping in DynamoDB: Tint User ID <-> Stytch Member ID
-    await upsertStytchUserMapping({
-      tintUserId: userId,
-      stytchMemberId,
-      createdAt: new Date().toISOString(),
-    });
+    // Store mapping: Tint User ID <-> Stytch Member ID
+    await upsertMapping({ tintUserId: userId, stytchMemberId });
   }
 
-  // Send magic link
-  const magicLinkResponse =
-    await stytchClient.b2b.magicLinks.email.loginOrSignup({
-      organization_id: stytchOrgId,
-      email_address: email,
-      login_redirect_url: `${AUTH_SERVICE_URL}/verify-email-callback?redirectUrl=${encodeURIComponent(
-        verifyRedirectUrl
-      )}`,
-      signup_redirect_url: `${AUTH_SERVICE_URL}/verify-email-callback?redirectUrl=${encodeURIComponent(
-        verifyRedirectUrl
-      )}`,
-      login_template_id: process.env.STYTCH_VERIFICATION_TEMPLATE_ID,
-    });
+  // Send magic link email
+  await sendStytchMagicLink({
+    organizationId: stytchOrgId,
+    email,
+    redirectUrl: verifyRedirectUrl,
+    templateId: VERIFICATION_TEMPLATE_ID,
+  });
 
-  return { success: true, memberToken: magicLinkResponse.member_id };
+  return { success: true };
 }
 ```
 
@@ -697,6 +636,8 @@ We customize the email verification template in Stytch's dashboard:
 This clearly differentiates verification emails from login emails, reducing user confusion.
 
 ## Migration Strategy: From Hardcoded List to Database
+
+This migration followed our standard change management process with proper testing, approval, and rollback plans.
 
 We couldn't just flip a switch—we had 71+ existing alternate emails in production that users relied on. We needed a smooth migration path.
 
@@ -857,7 +798,7 @@ We designed the system so that our database operations always succeed, even if e
 1. Delete from our database (source of truth)
 2. _Then_ attempt to clean up Stytch (best-effort)
 
-If step 2 fails, we log a warning but still return success to the user. We maintain a manual cleanup process to periodically reconcile orphaned Stytch members with our database records.
+If step 2 fails, we log a warning but still return success to the user. We maintain a manual cleanup process to periodically reconcile orphaned Stytch members with our database records. This cleanup job is documented, access-controlled, and runs on a regular schedule as part of our operational procedures.
 
 ### 2. Idempotent Operations Are Your Friend
 
@@ -879,7 +820,7 @@ The cost is minimal: a slightly more complex query with `WHERE deleted_at IS NUL
 Storing `email_lowercase` alongside `email` was the right choice. We considered:
 
 - **Functional index with LOWER()**: Requires computation on every query
-- **CITEXT column type**: PostgreSQL-specific, portability issues
+- **CITEXT column type**: Requires computation on every query, PostgreSQL-specific
 - **Two columns**: Simple, fast, database-agnostic
 
 The two-column approach with a CHECK constraint ensures consistency without the downsides of the alternatives.
@@ -909,6 +850,18 @@ Using cryptographically signed tokens for verification callbacks prevents tamper
 ### 9. Working Within API Constraints
 
 The Stytch B2C/B2B limitation forced us to rethink our approach. Instead of fighting the constraint, we embraced it: one Stytch member per email. Sometimes the best solution isn't the one you planned—it's the one that works with the tools you have.
+
+### 10. Generic Error Messages to Prevent Email Enumeration
+
+We use generic error messages when an email is unavailable or verification fails. Instead of specific messages like "This email is already associated with another account," we return "Unable to add this email. Please try a different email or contact support."
+
+This prevents **email enumeration attacks**, where an attacker could probe the system to discover which emails have accounts. By providing the same generic message regardless of whether the email exists, we protect user privacy and make reconnaissance harder.
+
+Additional protections we implement:
+
+- **Rate limiting**: Users can only attempt to add 5 emails before hitting their limit
+- **Organization scoping**: All operations are limited to the user's organization, preventing cross-org enumeration
+- **Monitoring**: We track failed addition attempts to detect suspicious patterns
 
 ## What We'd Do Differently
 
@@ -944,6 +897,10 @@ We added detailed logging and metrics after launch when we wanted to write this 
 
 Having these metrics from day one would have given us earlier insight into user behavior.
 
+## A Note on Security
+
+We've generalized some implementation details in this post for security reasons. Things like exact error messages, some table names, and specific secret management approaches aren't fully detailed here. All cryptographic keys and secrets are managed using industry-standard secret management tools, logs are sanitized to avoid storing PII or tokens, and our manual processes are access-controlled and regularly reviewed as part of our SOC 2 compliance program.
+
 ## Conclusion: Self-Service at Scale
 
 Building a self-service email management system taught us that great developer experiences come from thoughtful architecture. By choosing PostgreSQL over Redis, soft deletes over hard deletes, and atomic operations over optimistic locking, we built a system that's both fast and reliable.
@@ -960,7 +917,3 @@ If you're considering building a similar system, the key principles are:
 6. **Progressive migration** - backwards compatibility during cutover
 7. **Cryptographic signatures** - secure inter-service communication
 8. **Work within API constraints** - adapt your design to external service limitations
-
----
-
-_Jahkell Lazarre is a Senior Software Engineer at Tint, where he works on building insurance infrastructure for the gig economy._
