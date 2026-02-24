@@ -218,18 +218,23 @@ iptables -P OUTPUT DROP
 # Allow loopback (localhost traffic: SNI proxy, PostgreSQL, Docker DNS)
 iptables -A OUTPUT -o lo -j ACCEPT
 
+# Also allow traffic to 127.0.0.0/8 — REDIRECT changes the destination
+# to 127.0.0.1 but doesn't always update the output interface (notably
+# on WSL2 and some Docker setups), so redirected packets may not match -o lo.
+iptables -A OUTPUT -d 127.0.0.0/8 -j ACCEPT
+
 # Redirect HTTPS from the node user (Claude Code) to the SNI proxy.
 # The "! --uid-owner root" means only non-root processes are redirected —
-# nginx (running as root) can reach upstream servers directly.
+# nginx (configured with "user root;") can reach upstream servers directly.
 iptables -t nat -A OUTPUT -p tcp --dport 443 \
   -m owner ! --uid-owner root -j REDIRECT --to-port 8443
 
-# Allow root (nginx) to make upstream connections
+# Allow root (nginx master + workers) to make upstream connections
 iptables -A OUTPUT -p tcp --dport 443 \
   -m owner --uid-owner root -j ACCEPT
 ```
 
-The `! --uid-owner root` is key: the `node` user (which runs Claude Code) gets redirected through the proxy, but `root` (which runs nginx) can reach upstream servers directly. No circular loop.
+The `! --uid-owner root` is key: the `node` user (which runs Claude Code) gets redirected through the proxy, but `root` (which runs nginx) can reach upstream servers directly. No circular loop. Note that nginx workers default to `nobody`, so you need `user root;` in your `nginx.conf` to make the uid-based iptables rules match.
 
 **2. nginx inspects SNI and filters by domain:**
 
@@ -237,6 +242,11 @@ The `! --uid-owner root` is key: the `node` user (which runs Claude Code) gets r
 # sni-server.conf
 server {
     listen 8443;
+
+    # Use Docker's embedded DNS resolver for upstream hostname resolution.
+    # Required because proxy_pass uses a variable ($sni_upstream), so nginx
+    # resolves the domain at runtime instead of at config load.
+    resolver 127.0.0.11 ipv6=off;
 
     # Read the SNI header from the TLS ClientHello — the domain name
     # the client wants to connect to, sent in cleartext before encryption
