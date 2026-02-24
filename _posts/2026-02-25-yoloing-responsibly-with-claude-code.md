@@ -274,6 +274,8 @@ If the SNI hostname matches a whitelisted entry, nginx proxies the connection tr
 
 The result: `curl https://httpbin.org/get` from any tool — Bash, WebFetch, MCP, a Node.js script — gets dropped at the container level. No process inside the container can reach an unwhitelisted domain, regardless of how the request is made.
 
+<blockquote class="warning"><strong>Cloud dev environments:</strong> This setup requires <code>cap_add: [NET_ADMIN]</code> in your <code>docker-compose.yml</code> to allow <code>iptables</code> inside the container. If you fully control your Docker host, this is straightforward. However, managed platforms like Ona (formerly Gitpod) don't support <code>NET_ADMIN</code> capabilities. For Ona users, the alternative is setting up a private VPC with a network-level firewall to restrict egress traffic — but this requires Ona Enterprise and is a significantly more complex setup that we won't cover here.</blockquote>
+
 ## Harden Your Hooks
 
 In our [previous post](https://tech.tint.ai/diving-into-our-claude-code-daily-workflow/), we shared our auto-format hook that runs Prettier after every file edit. Here's what we didn't mention: the original version had a command injection vulnerability.
