@@ -6,7 +6,7 @@ description: 'This skill should be used when the user wants to "write a blog pos
 
 ## Workflow
 
-1. **Confirm author exists** in `_data/authors.yml`. If missing, add the entry (email key, name, title, gravatar_hash).
+1. **Confirm author exists** in `_data/authors.yml`. If missing, add the entry (email key, name, title, gravatar_hash). Prompt the user to set up a Gravatar profile image if they haven't already — this is a manual step the agent cannot automate. Refer them to the instructions in `README.md` (section "First Time Setup").
 2. **Choose a slug** -- lowercase, hyphenated, descriptive (e.g., `optimizing-connection-pool`).
 3. **Create the post file** at `_posts/YYYY-MM-DD-slug.md` using today's date.
 4. **Create the image directory** at `assets/images/slug/`. Two hero images are required:
