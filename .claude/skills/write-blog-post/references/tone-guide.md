@@ -43,6 +43,11 @@ Example opening:
 
 ## Language Guidelines
 
+### Confidentiality
+
+- Obfuscate production table names, columns, data constraints, and other implementation details that a malicious actor could abuse.
+- Never use real customer or brand partner names. Use "customer X" or "one of our customers" instead.
+
 ### Team Perspective
 
 - Always use "we": "We discovered", "We implemented".

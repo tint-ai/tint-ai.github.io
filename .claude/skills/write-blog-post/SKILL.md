@@ -130,6 +130,10 @@ Numbered principles or actionable lessons. Leave the reader with something they 
 - [ ] Explains the "why" behind decisions
 - [ ] Admits uncertainties or surprises where relevant
 
+### Confidentiality
+- [ ] No real production table names, columns, or data constraints -- obfuscate or change them
+- [ ] No real customer or brand partner names -- use "customer X" or "one of our customers"
+
 ### Content
 - [ ] `<!--more-->` excerpt marker after opening paragraph
 - [ ] Specific metrics and data (not vague qualifiers)
