@@ -12,9 +12,11 @@ description: 'This skill should be used when the user wants to "write a blog pos
 4. **Create the image directory** at `assets/images/slug/`. Two hero images are required:
    - `hero.png` -- main post image
    - `hero-social.png` -- 1200x630px for OpenGraph/Twitter cards
+   The agent cannot generate these images. Ask the user if they have hero images ready. If not, propose to skip for now and add them later before merging.
 5. **Write front matter** (see Front Matter section below).
 6. **Draft the post** following the voice and structure guidelines below.
-7. **Validate** against the Quick Checklist at the bottom.
+7. **Suggest visual evidence.** After drafting, review the post and suggest specific places where images, diagrams, graphs, or screenshots would strengthen the content (e.g., architecture diagrams, before/after performance graphs, terminal output). Ask the user if they have existing visuals or can create them. If not available yet, add TODO comments marking where visuals should go.
+8. **Validate** against the Quick Checklist at the bottom.
 
 ## Front Matter
 
