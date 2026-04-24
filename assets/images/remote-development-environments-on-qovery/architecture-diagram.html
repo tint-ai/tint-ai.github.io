@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Per-developer Qovery environment — architecture</title>
+<style>
+/* ---- FONT FACES ---- */
+/* Cormorant Garamond replaces proprietary Carmos as the highlight accent font */
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400&family=Red+Hat+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Red+Hat+Text:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap");
+
+:root {
+    /* ---- FONT FAMILIES ---- */
+    --font-display: "Red Hat Display", ui-sans-serif, system-ui, sans-serif;
+    --font-text: "Red Hat Text", ui-sans-serif, system-ui, sans-serif;
+    --font-highlight: "Cormorant Garamond", "Red Hat Display", sans-serif;
+
+    /* ---- NEUTRALS ---- */
+    --color-neutral-900: #1e2430;
+    --color-neutral-600: #5e6b7e;
+    --color-neutral-400: #667283;
+    --color-neutral-200: #e3e8ef;
+    --color-neutral-100: #f7f9fc;
+    --color-neutral-0:   #ffffff;
+
+    /* ---- CORE BRAND ---- */
+    --color-brand-900: #042d87;
+    --color-brand-700: #0d54d1;
+    --color-brand-400: #06cdef;
+    --color-brand-200: #b2f0ff;
+
+    /* ---- PINKS ---- */
+    --color-pink-700: #d33fae;
+    --color-pink-400: #e78ada;
+    --color-pink-200: #ffd5f9;
+
+    /* ---- PURPLES ---- */
+    --color-purple-700: #9d22f2;
+    --color-purple-400: #c26df7;
+    --color-purple-200: #d7a5f7;
+
+    /* ---- ROYALS ---- */
+    --color-royal-700: #4c3ff5;
+    --color-royal-400: #776df7;
+    --color-royal-200: #c5bffa;
+
+    /* ---- DEEP PURPLES ---- */
+    --color-deep-purple-900: #390cae;
+    --color-deep-purple-700: #6320f7;
+    --color-deep-purple-200: #b0a1fa;
+
+    /* ---- LIGHT GREENS ---- */
+    --color-light-green-700: #27ad86;
+    --color-light-green-400: #73f6ce;
+    --color-light-green-200: #d5fae8;
+
+    /* ---- MID GREENS ---- */
+    --color-mid-green-700: #277771;
+    --color-mid-green-400: #31b6a0;
+    --color-mid-green-200: #b4ebe2;
+
+    /* ---- DARK GREENS ---- */
+    --color-dark-green-900: #135438;
+    --color-dark-green-700: #278f61;
+    --color-dark-green-200: #ebfedb;
+
+    /* ---- REDS ---- */
+    --color-red-700: #be0244;
+    --color-red-500: #e8404d;
+    --color-red-400: #ff6771;
+
+    /* ---- ORANGES ---- */
+    --color-orange-700: #d04c00;
+    --color-orange-500: #ff6a00;
+    --color-orange-200: #ffe5cf;
+
+    /* ---- GOLDS ---- */
+    --color-gold-700: #d69b00;
+    --color-gold-400: #f7c951;
+    --color-gold-200: #ffe6a5;
+
+    /* ---- YELLOWS ---- */
+    --color-yellow-700: #f5e908;
+    --color-yellow-400: #feff58;
+    --color-yellow-200: #ffffad;
+
+    /* ---- BRIGHT GREENS ---- */
+    --color-bright-green-700: #5ebf26;
+    --color-bright-green-400: #34ef00;
+    --color-bright-green-200: #ddfd52;
+
+    /* ---- SEMANTIC ---- */
+    --color-fg:          var(--color-neutral-900);
+    --color-fg-muted:    var(--color-neutral-600);
+    --color-fg-subtle:   var(--color-neutral-400);
+    --color-fg-inverse:  var(--color-neutral-0);
+    --color-bg:          var(--color-neutral-0);
+    --color-bg-alt:      #f3f4f7;
+    --color-bg-muted:    #e9eaee;
+    --color-bg-sunken:   var(--color-neutral-100);
+    --color-border:      #e2e4e9;
+    --color-border-strong: var(--color-neutral-200);
+    --color-ring:        var(--color-brand-400);
+
+    --color-primary:     var(--color-brand-400);
+    --color-primary-fg:  var(--color-brand-900);
+    --color-secondary:   var(--color-brand-900);
+    --color-accent-gold: var(--color-gold-700);
+
+    /* ---- SHADOWS ---- */
+    --shadow-sm:  0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-base:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md:  0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg:  0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-hero: 0 4px 72px rgba(0,0,0,0.13);
+}
+
+html, body {
+    margin: 0;
+    background: var(--color-neutral-0);
+    color: var(--color-fg);
+    font-family: var(--font-text);
+}
+
+.figure {
+    padding: 32px 40px 40px;
+}
+
+.diagram {
+    display: grid;
+    grid-template-columns: 360px 1fr 580px;
+    align-items: start;
+    gap: 0;
+    position: relative;
+}
+
+.tunnel-wire {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    overflow: visible;
+}
+.tunnel-wire path.solid {
+    fill: none;
+    stroke: var(--color-brand-400);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.tunnel-wire path.dashed {
+    fill: none;
+    stroke: var(--color-brand-400);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 5 5;
+}
+
+/* --- left column: developer laptop --- */
+.laptop-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    z-index: 2;
+}
+.col-label {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-neutral-400);
+    margin-bottom: 14px;
+    position: static;
+}
+
+.laptop {
+    width: 310px;
+    background: var(--color-neutral-900);
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: var(--shadow-md);
+    position: relative;
+}
+.laptop::after {
+    content: "";
+    display: block;
+    position: absolute;
+    bottom: -8px;
+    left: -14px;
+    right: -14px;
+    height: 8px;
+    background: var(--color-neutral-900);
+    border-radius: 0 0 10px 10px;
+}
+.vscode {
+    background: #1e1e1e;
+    border-radius: 3px;
+    overflow: hidden;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: #d4d4d4;
+    min-height: 160px;
+}
+.vscode-chrome {
+    background: #2d2d2d;
+    padding: 6px 10px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    border-bottom: 1px solid #000;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot.r { background: #ff5f57; }
+.dot.y { background: #febc2e; }
+.dot.g { background: #28c840; }
+.vscode-title {
+    margin-left: 10px;
+    color: #9a9a9a;
+    font-size: 12px;
+    font-family: var(--font-text);
+}
+.vscode-body {
+    display: grid;
+    grid-template-columns: 30px 1fr;
+    min-height: 125px;
+}
+.vscode-activity {
+    background: #333;
+    padding: 8px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #858585;
+    font-size: 14px;
+}
+.vscode-editor { padding: 10px 12px; }
+.vscode-editor .ln { color: #5e5e5e; display: inline-block; width: 14px; }
+.vscode-editor .kw { color: #569cd6; }
+.vscode-editor .fn { color: #dcdcaa; }
+.vscode-editor .st { color: #ce9178; }
+.vscode-editor .cm { color: #6a9955; }
+
+.remote-indicator {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    right: 10px;
+    background: var(--color-brand-400);
+    color: var(--color-brand-900);
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 2px;
+}
+.remote-indicator svg { flex: 0 0 auto; }
+.remote-indicator .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-light-green-400);
+    box-shadow: 0 0 0 0 rgba(115, 246, 206, 0.65);
+    animation: pulse 2s ease-out infinite;
+}
+
+.laptop-caption {
+    margin-top: 26px;
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-neutral-900);
+}
+.laptop-sub {
+    font-size: 15px;
+    color: var(--color-neutral-600);
+    margin-top: 4px;
+    line-height: 1.45;
+    max-width: 310px;
+}
+
+.tunnel-col {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 28px;
+}
+.tunnel-badge {
+    background: var(--color-neutral-900);
+    color: var(--color-neutral-0);
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 9px 14px;
+    border-radius: 2px 2px 12px 2px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 7px;
+    box-shadow: 0 2px 0 var(--color-brand-400);
+    line-height: 1;
+}
+.tunnel-badge .hl {
+    font-family: var(--font-text);
+    font-weight: 700;
+    color: var(--color-brand-400);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    line-height: 1;
+}
+
+/* --- qovery shell CLI block (under laptop, left column) --- */
+.shell {
+    margin-top: 10px;
+    background: var(--color-neutral-900);
+    border-radius: 3px;
+    padding: 10px 12px;
+    width: 310px;
+    box-sizing: border-box;
+    box-shadow: var(--shadow-base);
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 13px;
+    color: #d4d4d4;
+    line-height: 1.5;
+}
+.shell-head {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 7px;
+    margin-bottom: 7px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: #858585;
+}
+.shell-head .ddot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-light-green-400); }
+.shell .pr { color: var(--color-brand-400); }
+.shell .cmd { color: #fff; }
+.shell .arg { color: var(--color-gold-400); }
+.shell .out { color: #858585; }
+
+/* --- right column: Qovery environment --- */
+.qovery {
+    position: relative;
+    background: var(--color-brand-900);
+    border-radius: 4px;
+    padding: 18px 20px 20px;
+    color: var(--color-neutral-0);
+    z-index: 2;
+    box-shadow: 0 4px 40px rgba(4, 45, 135, 0.18);
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+}
+.qovery-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+}
+.qovery-title {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--color-brand-200);
+}
+.qovery-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.14);
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--color-neutral-0);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.qovery-pill .pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-light-green-400);
+    box-shadow: 0 0 0 0 rgba(115, 246, 206, 0.6);
+    animation: pulse 2s ease-out infinite;
+}
+@keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(115,246,206,.65); }
+    100% { box-shadow: 0 0 0 8px rgba(115,246,206,0); }
+}
+
+.services {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    justify-content: space-between;
+}
+
+.svc {
+    background: var(--color-neutral-0);
+    border-radius: 4px;
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: 14px;
+    align-items: center;
+    color: var(--color-neutral-900);
+    position: relative;
+}
+.svc.primary {
+    background: var(--color-brand-400);
+    color: var(--color-brand-900);
+    padding: 14px 16px;
+}
+.svc.path {
+    background: transparent;
+    border: 1px dashed rgba(255,255,255,0.22);
+    color: var(--color-neutral-0);
+    padding: 10px 14px;
+    grid-template-columns: 28px 1fr;
+    gap: 10px;
+    margin-left: 22px;
+    position: relative;
+}
+.svc.path::before {
+    content: "";
+    position: absolute;
+    left: -14px;
+    top: -10px;
+    width: 14px;
+    height: 24px;
+    border-left: 1px dashed rgba(255,255,255,0.28);
+    border-bottom: 1px dashed rgba(255,255,255,0.28);
+    border-bottom-left-radius: 6px;
+}
+.svc.path .svc-icon {
+    width: 28px;
+    height: 28px;
+    background: rgba(255,255,255,0.08);
+    color: var(--color-brand-400);
+}
+.svc.path .svc-name {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-brand-200);
+}
+.svc.path .svc-desc {
+    color: rgba(255,255,255,0.55);
+    font-size: 13px;
+}
+.svc-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 3px;
+    background: var(--color-brand-200);
+    color: var(--color-brand-900);
+}
+.svc.primary .svc-icon {
+    background: var(--color-brand-900);
+    color: var(--color-brand-400);
+    width: 44px;
+    height: 44px;
+}
+.svc-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.005em;
+}
+.svc-desc {
+    font-size: 14px;
+    color: var(--color-neutral-600);
+    margin-top: 2px;
+    line-height: 1.4;
+}
+.svc.primary .svc-desc { color: var(--color-brand-900); opacity: 0.75; }
+.svc-specs {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    color: var(--color-neutral-600);
+    background: var(--color-neutral-100);
+    padding: 4px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+}
+.svc.primary .svc-specs {
+    background: var(--color-brand-900);
+    color: var(--color-brand-200);
+}
+.svc-tag {
+    position: absolute;
+    top: -9px;
+    left: 16px;
+    background: var(--color-yellow-400);
+    color: var(--color-neutral-900);
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 2px 8px;
+    border-radius: 2px;
+}
+
+.blueprint-note {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px dashed rgba(255,255,255,0.15);
+    font-size: 13px;
+    color: var(--color-brand-200);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.blueprint-note svg { flex: 0 0 auto; opacity: 0.7; }
+
+/* terminal cursor blink */
+@keyframes cursor-blink {
+    0%, 49%   { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+.shell .cursor {
+    display: inline-block;
+    width: 7px;
+    height: 12px;
+    background: #fff;
+    vertical-align: -2px;
+    margin-left: 2px;
+    animation: cursor-blink 1s steps(1) infinite;
+}
+
+@media (max-width: 960px) {
+    .diagram { grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; position: relative; }
+    .tunnel-wire, .tunnel-wire-2 { display: none; }
+    .tunnel-col { display: none; }
+    .qovery { margin-top: 0; }
+    .laptop-col { align-items: stretch; }
+    .diagram::before {
+        content: "";
+        position: absolute;
+        left: calc(50% - 12px);
+        right: calc(50% - 12px);
+        top: 50%;
+        height: 2px;
+        background: var(--color-brand-400);
+        border-radius: 2px;
+        box-shadow: 0 0 0 6px rgba(6, 205, 239, 0.12);
+        transform: translateY(-1px);
+    }
+}
+@media (max-width: 640px) {
+    .diagram {
+        grid-template-columns: 1fr;
+        gap: 56px;
+        align-items: stretch;
+    }
+    .diagram::before { display: none; }
+    .qovery::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: 100%;
+        width: 2px;
+        height: 56px;
+        background: var(--color-brand-400);
+        border-radius: 2px;
+        box-shadow: 0 0 0 6px rgba(6, 205, 239, 0.12);
+        transform: translateX(-1px);
+    }
+}
+</style>
+</head>
+<body>
+  <div class="figure">
+    <div class="diagram">
+
+        <!-- Tunnel wires: both in one SVG. Wire 1 = laptop → devcontainer (solid), Wire 2 = terminal → devcontainer (dashed). -->
+        <svg class="tunnel-wire" aria-hidden="true">
+          <path id="wire1-path" class="solid"/>
+          <path id="wire2-path" class="dashed"/>
+        </svg>
+
+        <!-- LEFT: developer laptop -->
+        <div class="laptop-col">
+          <div class="col-label">Our machine</div>
+          <div class="laptop-caption" style="margin-top: 0; margin-bottom: 10px;">Local VS Code</div>
+          <div class="laptop-sub" style="margin-bottom: 14px;">UI, extensions, keybindings — all local. File system and processes live remote.</div>
+          <div class="laptop">
+            <div class="vscode">
+              <div class="vscode-chrome">
+                <span class="dot r"></span>
+                <span class="dot y"></span>
+                <span class="dot g"></span>
+                <span class="vscode-title">VS Code</span>
+              </div>
+              <div class="vscode-body">
+                <div class="vscode-activity">
+                  <span>☰</span><span>⌕</span><span>⎇</span>
+                </div>
+                <div class="vscode-editor">
+                  <div><span class="ln">1</span><span class="cm">// local editor</span></div>
+                  <div><span class="ln">2</span><span class="kw">const</span> <span class="fn">db</span> = </div>
+                  <div><span class="ln">3</span>&nbsp;&nbsp;<span class="st">"postgres://…"</span></div>
+                  <div><span class="ln">4</span>&nbsp;</div>
+                  <div><span class="ln">5</span><span class="cm">// runs remote</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="remote-indicator">
+              <span class="live-dot"></span>
+              REMOTE · QOVERY-DEV-ENV
+            </div>
+          </div>
+
+          <div class="laptop-caption" style="margin-top: 22px;">qovery shell</div>
+          <div class="laptop-sub">A shell inside the devcontainer, dropped straight into your project directory.</div>
+
+          <div class="shell" role="figure" aria-label="Opening a shell with qovery shell">
+            <div class="shell-head">
+              <span class="ddot"></span>
+              your terminal
+            </div>
+            <div><span class="pr">$</span> <span class="cmd">qovery shell</span></div>
+            <div class="out">Connected to devcontainer</div>
+            <div><span class="pr">dev@qovery</span>:<span class="arg">~/my-project</span>$ <span class="cursor"></span></div>
+          </div>
+        </div>
+
+        <!-- MIDDLE: (tunnel badge removed; wires speak for themselves) -->
+        <div class="tunnel-col" aria-hidden="true"></div>
+
+        <!-- RIGHT: Qovery environment -->
+        <div class="qovery">
+          <div class="qovery-header">
+            <div class="qovery-title">Qovery environment</div>
+            <div class="qovery-pill"><span class="pulse"></span>Running</div>
+          </div>
+
+          <div class="services">
+
+            <!-- devcontainer (primary) -->
+            <div class="svc primary">
+              <span class="svc-tag">Entry point</span>
+              <div class="svc-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                  <path d="M3.27 6.96 12 12.01l8.73-5.05"/>
+                  <path d="M12 22.08V12"/>
+                </svg>
+              </div>
+              <div>
+                <div class="svc-name">devcontainer</div>
+                <div class="svc-desc">Development machine · runs VS Code Server</div>
+              </div>
+            </div>
+
+            <!-- Postgres -->
+            <div class="svc">
+              <div class="svc-icon" style="background:#d7a5f7; color:#390cae;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                  <path d="M3 5v14a9 3 0 0 0 18 0V5"/>
+                  <path d="M3 12a9 3 0 0 0 18 0"/>
+                </svg>
+              </div>
+              <div>
+                <div class="svc-name">Postgres</div>
+                <div class="svc-desc">Relational database</div>
+              </div>
+            </div>
+
+            <!-- Elasticsearch -->
+            <div class="svc">
+              <div class="svc-icon" style="background:#ffe6a5; color:#d69b00;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="7"/>
+                  <path d="m20 20-3.5-3.5"/>
+                  <path d="M11 8v6"/>
+                  <path d="M8 11h6"/>
+                </svg>
+              </div>
+              <div>
+                <div class="svc-name">Elasticsearch</div>
+                <div class="svc-desc">Search engine</div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="blueprint-note">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M9 3v18"/>
+              <path d="M3 9h6"/>
+            </svg>
+            Cloned from a shared blueprint · isolated per developer
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <script>
+    (function positionWires() {
+      function layout() {
+        const diagram = document.querySelector('.diagram');
+        const laptop = document.querySelector('.laptop');
+        const shell = document.querySelector('.shell');
+        const wire1Path = document.getElementById('wire1-path');
+        const wire2Path = document.getElementById('wire2-path');
+        const devcontainer = document.querySelector('.qovery .svc.primary');
+
+        if (!diagram || !shell || !wire1Path || !wire2Path || !devcontainer || !laptop) return;
+
+        const dBox = diagram.getBoundingClientRect();
+        const lBox = laptop.getBoundingClientRect();
+        const sBox = shell.getBoundingClientRect();
+        const dcBox = devcontainer.getBoundingClientRect();
+
+        const GAP_BEFORE_DC = 24;
+        const Y_OFFSET = 7;
+        const R = 10;
+
+        const xEnd = dcBox.left - dBox.left - GAP_BEFORE_DC;
+        const dcCenterY = (dcBox.top + dcBox.bottom) / 2 - dBox.top;
+
+        const w1x1 = lBox.right - dBox.left;
+        const w1y1 = (lBox.top + lBox.bottom) / 2 - dBox.top;
+        const w1y2 = dcCenterY - Y_OFFSET;
+        const w1Turn = xEnd - 40;
+        const w1d = elbowPath(w1x1, w1y1, w1Turn, w1y2, xEnd, R);
+        wire1Path.setAttribute('d', w1d);
+
+        const w2x1 = sBox.right - dBox.left;
+        const w2y1 = (sBox.top + sBox.bottom) / 2 - dBox.top;
+        const w2y2 = dcCenterY + Y_OFFSET;
+        const w2Turn = xEnd - 16;
+        const w2d = elbowPath(w2x1, w2y1, w2Turn, w2y2, xEnd, R);
+        wire2Path.setAttribute('d', w2d);
+      }
+
+      function elbowPath(x1, y1, turnX, yEnd, xEnd, r) {
+        if (Math.abs(y1 - yEnd) < 1) {
+          return `M ${x1} ${y1} L ${xEnd} ${yEnd}`;
+        }
+        const goingDown = yEnd > y1;
+        const yDir = goingDown ? 1 : -1;
+        return [
+          `M ${x1} ${y1}`,
+          `H ${turnX - r}`,
+          `Q ${turnX} ${y1} ${turnX} ${y1 + r * yDir}`,
+          `V ${yEnd - r * yDir}`,
+          `Q ${turnX} ${yEnd} ${turnX + r} ${yEnd}`,
+          `H ${xEnd}`
+        ].join(' ');
+      }
+
+      window.addEventListener('load', layout);
+      window.addEventListener('resize', layout);
+      setTimeout(layout, 50);
+      setTimeout(layout, 300);
+    })();
+    </script>
+  </div>
+</body>
+</html>
