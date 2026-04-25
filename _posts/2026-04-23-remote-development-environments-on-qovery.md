@@ -63,7 +63,7 @@ That's not just a convenience. It changes how you think about longer tasks. Inst
 
 ## Our First Attempt with Ona
 
-We scanned a few solutions ([GitHub Codespaces](https://github.com/features/codespaces), [Daytona](https://www.daytona.io/), [Ona](https://www.ona.com/) (the rebranded Gitpod)) and decided to go with Ona to give it a try.
+We looked at a few solutions, like [GitHub Codespaces](https://github.com/features/codespaces) or [Ona](https://www.ona.com/) (the rebranded Gitpod), and decided to go with Ona to give it a try.
 
 We set it up against our stack: one devcontainer running all our application services, one Postgres container, one Elasticsearch container. It worked. The devcontainer integration was clean, each environment got its own URL, and the multi-service model felt natural.
 
