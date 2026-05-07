@@ -68,6 +68,15 @@ Example opening:
 - Direct instructions: "Run this command" not "You may want to run".
 - Clear outcomes: "This reduced latency by 50%."
 
+### Punctuation
+
+- **No em dashes.** They are a strong AI writing signal. Use natural alternatives instead:
+  - Semicolon for two related independent clauses: "It doesn't. Not fully." or "It didn't work; here's why."
+  - Colon before an explanation or list: "The fix was simple: restart the service."
+  - Comma for a light pause or subordinate clause: "We ran it locally, which worked fine."
+  - Parentheses for brief asides: "each clone (one per task) runs in isolation."
+  - A new sentence when the thought is complete.
+
 ## Structural Guidelines
 
 ### Results-Oriented Opening
@@ -160,3 +169,4 @@ Before publishing, ensure the post:
 - [ ] Explains the "why" behind decisions
 - [ ] Offers practical takeaways
 - [ ] Admits uncertainties or surprises where relevant
+- [ ] Contains no em dashes (—)
