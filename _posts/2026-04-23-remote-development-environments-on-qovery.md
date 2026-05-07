@@ -95,31 +95,25 @@ The experience feels identical to local development. The only noticeable differe
 
 ### Dockerfile and Entrypoint
 
-The devcontainer image is based on [Chainguard's Wolfi-based Node image](https://images.chainguard.dev/directory/image/node/overview). Nothing exotic; just a standard Node image, but with CVEs patched automatically. The free tier lets you use the `latest` tag, which always pulls the most recently patched version. That's ideal for dev environments: if an update breaks something, you fix it: it's not production.
+The devcontainer image is based on `node:24-bookworm-slim`. Nothing exotic; just the standard Node LTS image on a minimal Debian base.
 
-The interesting part is how we start the dev servers alongside VS Code tunnel.
+The interesting part is how we manage the multiple processes that need to run together: VS Code tunnel, the dev server, the idle monitor, and the proxy daemons (squid and dnsmasq).
 
-The naive approach is to run both as background processes in the entrypoint. The problem is that Docker containers need a foreground process; if everything is backgrounded, the container exits immediately. And if you use `exec` to put one process in the foreground, it doesn't receive signals from the other.
+Our first approach was to background them all with `&` and use `trap + wait` to forward signals. This works until it doesn't:
 
-The pattern we landed on is `trap + wait`:
+- **Silent crashes.** A bad code change crashed `pnpm dev` inside the container. The process was gone, nothing restarted it, and we only noticed when we went back to our editor and found nothing was responding. Having to `qovery shell` in just to re-run `pnpm dev` is the kind of friction that makes you question the whole setup.
+- **Startup ordering.** `dnsmasq` needs to be ready before `squid` resolves its ACL domains on startup. With a bash entrypoint, you work around this with `sleep` loops — inelegant, and as we found out, not reliable either when the system is under load.
 
-```bash
-# Start dev servers in background
-pnpm dev &
-DEV_PID=$!
+We hit both in the same week and decided to do it properly with [s6-overlay](https://github.com/just-containers/s6-overlay), a process supervisor designed for containers — no PM2, no supervisord, just a proper init system as PID 1 that manages the service tree as a dependency graph:
 
-# On SIGTERM/SIGINT (container stop), kill both processes
-trap 'kill $DEV_PID $TUNNEL_PID 2>/dev/null; wait $DEV_PID $TUNNEL_PID' SIGTERM SIGINT
+| Stage | Service | Depends on |
+|---|---|---|
+| 1 | `resolv-rewrite` | — |
+| 2 | `dnsmasq`, `squid` | `resolv-rewrite` |
+| 3 | `bootstrap` | `squid` ready |
+| 4 | `code-tunnel`, `idle-monitor` | `bootstrap` |
 
-# Start VS Code tunnel in foreground
-code tunnel --accept-server-license-terms --cli-data-dir /tmp/vscode-cli &
-TUNNEL_PID=$!
-
-# Wait keeps the container alive and forwards signals
-wait $TUNNEL_PID
-```
-
-This means both processes receive signals on container stop, and neither can crash silently without taking down the other. No PM2, no supervisor. Just bash.
+`resolv-rewrite` is a oneshot that freezes `/etc/resolv.conf` to `127.0.0.1` before anything else runs, so dnsmasq is always the resolver by the time squid or the dev server make their first lookup. `squid` uses `s6-notifyoncheck`, which holds dependent services in the start queue until `squid`'s port 3128 is actually accepting connections — no race condition, no polling loop. If any service crashes, s6 restarts it without taking down the whole container.
 
 ### Terraform Infrastructure
 
@@ -215,19 +209,15 @@ The same pattern works for Elasticsearch via `GET /_cluster/health`. This makes 
 
 Unlike Postgres or Elasticsearch, the devcontainer itself is the expensive part. Even on our relatively light POC, it needed 4 CPU and 16 GB of RAM to run the full dev stack comfortably. Leaving that running overnight when nobody is using it adds up fast. We added an idle monitor that stops the entire Qovery environment when nobody's connected.
 
-Detection counts `sh` and `bash` processes via `ps`, calibrated against a baseline measured on the first poll (after entrypoint startup subshells have settled). Any count above the baseline means someone is connected. Here is the simplified script:
+The first version counted `sh` and `bash` processes via `ps`, calibrated against a baseline on startup. It broke in a subtle way: when a VS Code tunnel session disconnects, it leaves orphaned bash processes behind. Those processes never exit, so the count stays permanently above the baseline and the idle threshold is never reached. Environments would run forever regardless of inactivity.
+
+The fix was to count open PTY master file descriptors instead. A PTY master (`/dev/ptmx`) is opened when a real terminal session starts and released immediately when it ends. No orphans, no calibration needed. Here is the simplified script:
 
 ```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-POLL_INTERVAL="${POLL_INTERVAL:-60}"
-IDLE_TIMEOUT_SECONDS=$((IDLE_TIMEOUT_MINUTES * 60))
-SHELL_BASELINE=""
-idle_seconds=0
-
-is_active() {
-  [[ "$1" -gt "$SHELL_BASELINE" ]]
+count_pty_masters() {
+  find /proc/*/fd -maxdepth 1 \
+    \( -lname '/dev/ptmx' -o -lname '/dev/pts/ptmx' \) \
+    2>/dev/null | wc -l || true
 }
 
 stop_environment() {
@@ -235,17 +225,14 @@ stop_environment() {
     -H "Authorization: Token ${RDE_QOVERY_API_TOKEN}"
 }
 
+idle_seconds=0
+
 while true; do
   sleep "$POLL_INTERVAL"
 
-  # Calibrate on first iteration — entrypoint subshells have exited by now
-  if [[ -z "$SHELL_BASELINE" ]]; then
-    SHELL_BASELINE=$(ps -eo comm= | grep -c -x -E 'sh|bash' || true)
-  fi
+  pty_masters=$(count_pty_masters)
 
-  shell_count=$(ps -eo comm= | grep -c -x -E 'sh|bash' || true)
-
-  if is_active "$shell_count"; then
+  if [[ "$pty_masters" -gt 0 ]]; then
     idle_seconds=0
   else
     idle_seconds=$((idle_seconds + POLL_INTERVAL))
@@ -256,6 +243,8 @@ while true; do
   fi
 done
 ```
+
+One practical implication: **keep at least one terminal open while working** — VS Code's integrated terminal or a Qovery shell both count. In practice we've never thought about it: when vibe coding, Claude Code is always running somewhere.
 
 `QOVERY_ENVIRONMENT_ID` is a [built-in variable automatically injected by Qovery](https://hub.qovery.com/docs/using-qovery/configuration/environment-variable/) into every container at runtime, with no manual wiring needed.
 
@@ -370,24 +359,16 @@ server=/cdn.playwright.dev/1.1.1.1
 address=/#/0.0.0.0
 ```
 
-Copy the config in your Dockerfile and point `resolv.conf` at `dnsmasq` from the entrypoint; it must be done at runtime as root, before dropping to the app user, so the app user cannot redirect DNS:
+**Cross-container communication.** There's a catch: freezing `/etc/resolv.conf` to `127.0.0.1` cuts off the Kubernetes cluster's CoreDNS, which is what resolves internal hostnames like `postgres.myenv.svc.cluster.local`. That breaks communication to Postgres and Elasticsearch entirely.
 
-```dockerfile
-COPY dnsmasq.conf /etc/dnsmasq.conf
+The fix is to read the original CoreDNS IP from `/etc/resolv.conf` *before* overwriting it, then add a `dnsmasq` forwarder entry for `*.cluster.local` pointing at that IP:
+
+```conf
+# /etc/dnsmasq.d/cluster.conf (generated at startup)
+server=/cluster.local/<CoreDNS-IP>
 ```
 
-```bash
-# entrypoint.sh (root section)
-echo "nameserver 127.0.0.1" > /etc/resolv.conf
-chmod 0444 /etc/resolv.conf
-```
-
-Start `dnsmasq` before `squid`; `squid` needs to resolve its ACL domains on startup:
-
-```bash
-dnsmasq -k &
-squid -N -f /etc/squid/squid.conf &
-```
+`dnsmasq` forwards `*.cluster.local` queries to the real cluster DNS and blocks everything else. The `resolv-rewrite` s6 oneshot handles the sequencing: it captures the CoreDNS IP, writes the forwarder file, then freezes `/etc/resolv.conf` — all before `dnsmasq` starts.
 
 #### What this doesn't cover
 
