@@ -58,3 +58,15 @@ hero_image: "/assets/images/your-post-slug/hero.png"
 The excerpt (shown on homepage) should be followed by `<!--more-->` to indicate where the preview ends.
 
 The `author` field must match an email key in `_data/authors.yml`, not the display name.
+
+## Analytics
+
+Google Analytics 4 is configured via the `google_analytics` key in `_config.yml`:
+
+```yaml
+google_analytics: "G-XXXXXXXXXX"  # replace with real Measurement ID
+```
+
+- **To disable analytics**: comment out or remove the `google_analytics` line — the GA4 snippet and cookie banner will not be rendered.
+- **Consent Mode v2**: All consent signals (`analytics_storage`, `ad_storage`, `ad_user_data`, `ad_personalization`) default to `denied` on page load. They are only upgraded to `granted` after the visitor explicitly accepts cookies via the banner.
+- **Cookie banner**: Powered by [vanilla-cookieconsent v3](https://github.com/orestbida/cookieconsent) loaded from jsDelivr CDN. No build step required.
