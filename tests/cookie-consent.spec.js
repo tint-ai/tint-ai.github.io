@@ -22,13 +22,13 @@ test.describe('Cookie consent compliance', () => {
   });
 
   test('consent bar appears on first visit — homepage', async ({ page }) => {
-    await expect(page.locator('#cc-main')).toBeVisible();
+    await expect(page.locator('.cm')).toBeVisible();
   });
 
   test('consent bar appears on first visit — post pages', async ({ page }) => {
     const postLink = page.locator('a').filter({ hasText: /.{10,}/ }).first();
     await postLink.click();
-    await expect(page.locator('#cc-main')).toBeVisible();
+    await expect(page.locator('.cm')).toBeVisible();
   });
 
   test('Decline stores only necessary consent (no analytics)', async ({ page }) => {
@@ -55,20 +55,20 @@ test.describe('Cookie consent compliance', () => {
   test('banner does not reappear after accepting', async ({ page }) => {
     await page.getByRole('button', { name: 'Accept' }).click();
     await page.reload();
-    await expect(page.locator('#cc-main')).not.toBeVisible();
+    await expect(page.locator('.cm')).not.toBeVisible();
   });
 
   test('banner does not reappear after declining', async ({ page }) => {
     await page.getByRole('button', { name: 'Decline' }).click();
     await page.reload();
-    await expect(page.locator('#cc-main')).not.toBeVisible();
+    await expect(page.locator('.cm')).not.toBeVisible();
   });
 
   test('preferences modal shows Necessary (locked) and Analytics (toggleable)', async ({ page }) => {
     const prefsBtn = page.getByRole('button', { name: 'Manage preferences' });
     await prefsBtn.hover();
     await prefsBtn.click();
-    const modal = page.locator('#cc-preferences');
+    const modal = page.locator('.pm');
     await expect(modal).toBeVisible();
 
     const necessarySection = modal.locator('.pm__section--toggle').filter({ hasText: 'Strictly necessary' });
@@ -124,7 +124,7 @@ test.describe('Cookie consent compliance', () => {
     // Navigate fresh — banner visible, no interaction
     await page.goto('/');
     await page.waitForFunction(() => typeof window.CookieConsent !== 'undefined', { timeout: 20_000 });
-    await expect(page.locator('#cc-main')).toBeVisible();
+    await expect(page.locator('.cm')).toBeVisible();
 
     // Only the gtag loader script itself is permitted; no collect/analytics hits
     const collectHits = ga4Requests.filter(u => u.includes('/collect') || u.includes('analytics'));
