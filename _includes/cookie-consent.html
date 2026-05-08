@@ -1,0 +1,70 @@
+{% if site.google_analytics %}
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.css"
+>
+<script type="module">
+  import 'https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.umd.js';
+
+  CookieConsent.run({
+    guiOptions: {
+      consentModal: { layout: 'bar inline', position: 'bottom' },
+      preferencesModal: { layout: 'box' }
+    },
+    categories: {
+      necessary: { enabled: true, readOnly: true },
+      analytics: {
+        enabled: false,
+        autoClear: {
+          cookies: [
+            { name: /^_ga/ },
+            { name: '_gid' }
+          ]
+        }
+      }
+    },
+    language: {
+      default: 'en',
+      translations: {
+        en: {
+          consentModal: {
+            title: 'We use cookies',
+            description:
+              'We use analytics cookies to understand how you use this blog and improve it. You can accept, decline, or manage your preferences.',
+            acceptAllBtn: 'Accept',
+            acceptNecessaryBtn: 'Decline',
+            showPreferencesBtn: 'Manage preferences'
+          },
+          preferencesModal: {
+            title: 'Cookie preferences',
+            acceptAllBtn: 'Accept all',
+            acceptNecessaryBtn: 'Accept necessary only',
+            savePreferencesBtn: 'Save preferences',
+            closeIconLabel: 'Close',
+            sections: [
+              {
+                title: 'Strictly necessary',
+                description: 'These cookies are required for the site to function and cannot be turned off.',
+                linkedCategory: 'necessary'
+              },
+              {
+                title: 'Analytics',
+                description: 'Google Analytics 4 — helps us measure post reach and reader engagement.',
+                linkedCategory: 'analytics'
+              }
+            ]
+          }
+        }
+      }
+    },
+    onConsent: ({ cookie }) => {
+      const granted = cookie.categories.includes('analytics') ? 'granted' : 'denied';
+      gtag('consent', 'update', { analytics_storage: granted });
+    },
+    onChange: ({ cookie }) => {
+      const granted = cookie.categories.includes('analytics') ? 'granted' : 'denied';
+      gtag('consent', 'update', { analytics_storage: granted });
+    }
+  });
+</script>
+{% endif %}
