@@ -31,5 +31,4 @@ sass:
   sass_dir: _sass
   style: compressed
 
-# Google Analytics 4 — replace with real Measurement ID before merging
-google_analytics: "G-XXXXXXXXXX"
+# Google Analytics 4 — set via _config.ga.yml (gitignored), not here

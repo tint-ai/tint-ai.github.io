@@ -8,8 +8,25 @@ const { test, expect } = require('@playwright/test');
  */
 
 test.describe('Cookie consent compliance', () => {
+  // Skip the entire suite when GA4 is not configured (local dev without _config.ga.yml).
+  // test.skip() in beforeAll skips the whole describe block.
+  test.beforeAll(async ({ browser }) => {
+    const page = await browser.newPage();
+    await page.goto('/');
+    const html = await page.content();
+    await page.close();
+    test.skip(!html.includes('googletagmanager.com'), 'GA4 not configured — skipping');
+  });
+
   // Reset consent state before each test so every test starts as a first-time visitor.
   test.beforeEach(async ({ page }) => {
+    // CookieConsent's hideFromBots checks navigator.webdriver, which Playwright sets to true.
+    // Override it so the consent modal renders normally in tests.
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+    });
+    // Block outgoing GA collect calls so tests never ping Google's servers.
+    await page.route('**google-analytics.com/**', route => route.abort());
     await page.goto('/');
     await page.evaluate(() => {
       document.cookie.split(';').forEach(c => {

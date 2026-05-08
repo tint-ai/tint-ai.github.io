@@ -1,0 +1,51 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  playwright:
+    runs-on: blacksmith-2vcpu-ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Create GA config for tests
+        run: echo 'google_analytics: "G-FAKETEST01"' > _config.ga.yml
+
+      - name: Build Docker image
+        run: docker build -t technical-blog .
+
+      - name: Start test server
+        run: |
+          docker run -d \
+            --name technical-blog-test \
+            -p 4001:4001 \
+            -v ${{ github.workspace }}:/app \
+            -e PORT=4001 \
+            technical-blog
+
+      - name: Wait for server
+        run: until curl -sf http://localhost:4001 > /dev/null; do sleep 2; done
+        timeout-minutes: 3
+
+      - name: Run Playwright tests
+        run: pnpm exec playwright test
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
