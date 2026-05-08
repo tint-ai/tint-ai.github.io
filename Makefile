@@ -2,6 +2,13 @@ IMAGE_NAME := technical-blog
 CONTAINER_NAME := technical-blog-container
 PORT ?= 4000
 
+TEST_CONTAINER_NAME := technical-blog-test
+TEST_PORT ?= 4001
+
+vendor:
+	cp node_modules/vanilla-cookieconsent/dist/cookieconsent.esm.js assets/js/cookieconsent.esm.js
+	cp node_modules/vanilla-cookieconsent/dist/cookieconsent.css assets/css/cookieconsent.css
+
 install:
 	docker build -t $(IMAGE_NAME) .
 
@@ -26,3 +33,27 @@ logs:
 
 shell:
 	docker exec -it $(CONTAINER_NAME) /bin/sh
+
+test-start: install
+	@echo "Starting test server on port $(TEST_PORT)..."
+	@docker stop $(TEST_CONTAINER_NAME) 2>/dev/null || true
+	@docker rm $(TEST_CONTAINER_NAME) 2>/dev/null || true
+	@docker run -d \
+		--name $(TEST_CONTAINER_NAME) \
+		-p $(TEST_PORT):$(TEST_PORT) \
+		-v $(PWD):/app \
+		-e PORT=$(TEST_PORT) \
+		$(IMAGE_NAME)
+	@echo "Test server running at http://localhost:$(TEST_PORT)"
+
+test-stop:
+	@echo "Stopping test server..."
+	@docker stop $(TEST_CONTAINER_NAME) 2>/dev/null || true
+	@docker rm $(TEST_CONTAINER_NAME) 2>/dev/null || true
+	@echo "Test server stopped"
+
+test: test-start
+	@echo "Waiting for test server to be ready..."
+	@until curl -sf http://localhost:$(TEST_PORT) > /dev/null; do sleep 2; done
+	@echo "Running Playwright tests..."
+	@pnpm exec playwright test; STATUS=$$?; $(MAKE) test-stop; exit $$STATUS

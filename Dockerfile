@@ -10,13 +10,13 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # Copy Gemfile first for better caching
-COPY Gemfile* ./
+COPY --link Gemfile* ./
 
 # Install gems
 RUN bundle install
 
 # Copy the rest of the application
-COPY . .
+COPY --link . .
 
 # Expose port
 EXPOSE 4000

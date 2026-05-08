@@ -10,4 +10,10 @@ node_modules/
 .gitignore
 README.md
 Dockerfile
-.dockerignore 
+.dockerignore
+.env*
+*.log
+.vscode
+.idea
+playwright-report/
+test-results/ 
