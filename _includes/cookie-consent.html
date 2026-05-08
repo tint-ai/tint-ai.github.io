@@ -6,6 +6,11 @@
 <script type="module">
   import 'https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@v3.0.1/dist/cookieconsent.umd.js';
 
+  function updateAnalyticsConsent(cookie) {
+    const granted = cookie.categories.includes('analytics') ? 'granted' : 'denied';
+    gtag('consent', 'update', { analytics_storage: granted });
+  }
+
   CookieConsent.run({
     guiOptions: {
       consentModal: { layout: 'bar inline', position: 'bottom' },
@@ -57,14 +62,8 @@
         }
       }
     },
-    onConsent: ({ cookie }) => {
-      const granted = cookie.categories.includes('analytics') ? 'granted' : 'denied';
-      gtag('consent', 'update', { analytics_storage: granted });
-    },
-    onChange: ({ cookie }) => {
-      const granted = cookie.categories.includes('analytics') ? 'granted' : 'denied';
-      gtag('consent', 'update', { analytics_storage: granted });
-    }
+    onConsent: ({ cookie }) => updateAnalyticsConsent(cookie),
+    onChange:  ({ cookie }) => updateAnalyticsConsent(cookie)
   });
 </script>
 {% endif %}
