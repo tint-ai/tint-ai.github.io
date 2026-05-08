@@ -56,10 +56,10 @@
         'ad_user_data': 'denied',
         'ad_personalization': 'denied',
         'analytics_storage': 'denied',
-        'wait_for_update': 500
+        'wait_for_update': 2000
       });
       gtag('js', new Date());
-      gtag('config', '{{ site.google_analytics }}', { 'anonymize_ip': true });
+      gtag('config', '{{ site.google_analytics }}');
     </script>
     <script async src="https://www.googletagmanager.com/gtag/js?id={{ site.google_analytics }}"></script>
   {% endif %}
