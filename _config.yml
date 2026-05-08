@@ -29,4 +29,7 @@ defaults:
 
 sass:
   sass_dir: _sass
-  style: compressed 
+  style: compressed
+
+# Google Analytics 4 — replace with real Measurement ID before merging
+google_analytics: "G-XXXXXXXXXX"
