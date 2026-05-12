@@ -9,7 +9,7 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('Cookie consent compliance', () => {
   // Reset consent state before each test so every test starts as a first-time visitor.
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page, context }) => {
     // CookieConsent's hideFromBots checks navigator.webdriver, which Playwright sets to true.
     // Override it so the consent modal renders normally in tests.
     await page.addInitScript(() => {
@@ -17,13 +17,9 @@ test.describe('Cookie consent compliance', () => {
     });
     // Block outgoing GA collect calls so tests never ping Google's servers.
     await page.route('**google-analytics.com/**', route => route.abort());
+    // Clear all cookies before navigating so every test starts as a first-time visitor.
+    await context.clearCookies();
     await page.goto('/');
-    await page.evaluate(() => {
-      document.cookie.split(';').forEach(c => {
-        document.cookie = c.replace(/^ +/, '').replace(/=.*/, '=;expires=' + new Date().toUTCString() + ';path=/');
-      });
-    });
-    await page.reload();
     // Wait for CookieConsent to initialize (self-hosted ESM module)
     await page.waitForFunction(() => typeof window.CookieConsent !== 'undefined', { timeout: 20_000 });
   });
@@ -33,7 +29,7 @@ test.describe('Cookie consent compliance', () => {
   });
 
   test('consent bar appears on first visit — post pages', async ({ page }) => {
-    const postLink = page.locator('a').filter({ hasText: /.{10,}/ }).first();
+    const postLink = page.locator('a.card-link').first();
     await postLink.click();
     await expect(page.locator('.cm')).toBeVisible();
   });
