@@ -54,6 +54,7 @@ test-stop:
 
 test: test-start
 	@echo "Waiting for test server to be ready..."
-	@until curl -sf http://localhost:$(TEST_PORT) > /dev/null; do sleep 2; done
+	@i=0; until curl -sf http://localhost:$(TEST_PORT) > /dev/null || [ $$i -ge 30 ]; do sleep 2; i=$$((i+1)); done; \
+		curl -sf http://localhost:$(TEST_PORT) > /dev/null || { echo "Server failed to start"; $(MAKE) test-stop; exit 1; }
 	@echo "Running Playwright tests..."
 	@pnpm exec playwright test; STATUS=$$?; $(MAKE) test-stop; exit $$STATUS

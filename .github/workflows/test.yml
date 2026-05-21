@@ -8,6 +8,8 @@ on:
 jobs:
   playwright:
     runs-on: blacksmith-2vcpu-ubuntu-22.04
+    env:
+      GA_TEST_ID: G-FAKETEST01
     steps:
       - uses: actions/checkout@v4
 
@@ -22,7 +24,7 @@ jobs:
         run: pnpm exec playwright install --with-deps chromium
 
       - name: Create GA config for tests
-        run: echo 'google_analytics: "G-FAKETEST01"' > _config.ga.yml
+        run: echo "google_analytics: \"$GA_TEST_ID\"" > _config.ga.yml
 
       - name: Build Docker image
         run: docker build -t technical-blog .
