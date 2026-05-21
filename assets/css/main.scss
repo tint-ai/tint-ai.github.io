@@ -123,7 +123,7 @@ p {
     .footer-content-section {
       flex: 1;
       max-width: 520px;
-      
+
       .footer-description {
         font-size: 0.875rem;
         line-height: 1.6;
@@ -132,8 +132,43 @@ p {
         margin-top: 0;
       }
     }
+
+    .footer-legal-links {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
+      margin-left: auto;
+      padding-top: 0.25rem;
+
+      a, button {
+        font-size: 0.875rem;
+        color: #64748b;
+        text-decoration: underline;
+        background: none;
+        border: none;
+        padding: 0;
+        font-family: inherit;
+        cursor: pointer;
+        text-align: right;
+
+        &:hover {
+          color: #475569;
+        }
+
+        &:focus {
+          outline: none;
+        }
+
+        &:focus-visible {
+          outline: 2px solid #64748b;
+          outline-offset: 2px;
+          border-radius: 2px;
+        }
+      }
+    }
   }
-  
+
   .social-links {
     display: flex;
     gap: 1rem;
