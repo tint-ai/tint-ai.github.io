@@ -9,4 +9,4 @@ node_modules/
 .DS_Store
 playwright-report/
 test-results/
-_config.ga.yml
+zeus-fetched-rules.md

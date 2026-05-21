@@ -31,4 +31,7 @@ sass:
   sass_dir: _sass
   style: compressed
 
-# Google Analytics 4 — set via _config.ga.yml (gitignored), not here
+exclude:
+  - zeus-fetched-rules.md
+
+google_analytics: "G-KJENKKX3W4"

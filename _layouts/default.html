@@ -46,7 +46,7 @@
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:ital,wght@0,300..900;1,300..900&family=Inter:wght@100..900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
   
-  {% if site.google_analytics %}
+  {% if site.google_analytics and (jekyll.environment == 'production' or jekyll.environment == 'test') %}
     <!-- Google Consent Mode v2 — defaults to denied until user opts in -->
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -113,7 +113,7 @@
             </div>
             <div class="footer-legal-links">
               <a href="https://www.tint.ai/legal/privacy" target="_blank" rel="noopener">Privacy Policy</a>
-              {% if site.google_analytics %}
+              {% if site.google_analytics and (jekyll.environment == 'production' or jekyll.environment == 'test') %}
               <button type="button" aria-haspopup="dialog" onclick="window.CookieConsent && window.CookieConsent.showPreferences()">Manage cookie settings</button>
               {% endif %}
             </div>

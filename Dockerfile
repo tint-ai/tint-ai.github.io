@@ -22,4 +22,4 @@ COPY --link . .
 EXPOSE 4000
 
 # Start Jekyll server
-CMD ["sh", "-c", "CONFIG=_config.yml; [ -f _config.ga.yml ] && CONFIG=_config.yml,_config.ga.yml; bundle exec jekyll serve --host 0.0.0.0 --port ${PORT:-4000} --livereload --config $CONFIG"]
+CMD ["sh", "-c", "CONFIG=_config.yml; [ -f _config.test.yml ] && CONFIG=_config.yml,_config.test.yml; bundle exec jekyll serve --host 0.0.0.0 --port ${PORT:-4000} --livereload --config $CONFIG"]

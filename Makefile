@@ -43,6 +43,7 @@ test-start: install
 		-p $(TEST_PORT):$(TEST_PORT) \
 		-v $(PWD):/app \
 		-e PORT=$(TEST_PORT) \
+		-e JEKYLL_ENV=test \
 		$(IMAGE_NAME)
 	@echo "Test server running at http://localhost:$(TEST_PORT)"
 

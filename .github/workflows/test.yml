@@ -8,8 +8,6 @@ on:
 jobs:
   playwright:
     runs-on: blacksmith-2vcpu-ubuntu-22.04
-    env:
-      GA_TEST_ID: G-FAKETEST01
     steps:
       - uses: actions/checkout@v4
 
@@ -23,27 +21,8 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Create GA config for tests
-        run: echo "google_analytics: \"$GA_TEST_ID\"" > _config.ga.yml
-
-      - name: Build Docker image
-        run: docker build -t technical-blog .
-
-      - name: Start test server
-        run: |
-          docker run -d \
-            --name technical-blog-test \
-            -p 4001:4001 \
-            -v ${{ github.workspace }}:/app \
-            -e PORT=4001 \
-            technical-blog
-
-      - name: Wait for server
-        run: until curl -sf http://localhost:4001 > /dev/null; do sleep 2; done
-        timeout-minutes: 3
-
-      - name: Run Playwright tests
-        run: pnpm exec playwright test
+      - name: Run tests
+        run: make test
 
       - uses: actions/upload-artifact@v4
         if: failure()
