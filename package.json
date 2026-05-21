@@ -1,0 +1,16 @@
+{
+  "name": "tint-tech-blog-tests",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0"
+  },
+  "packageManager": "pnpm@10.10.0",
+  "dependencies": {
+    "vanilla-cookieconsent": "^3.1.0"
+  }
+}

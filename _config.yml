@@ -29,4 +29,9 @@ defaults:
 
 sass:
   sass_dir: _sass
-  style: compressed 
+  style: compressed
+
+exclude:
+  - zeus-fetched-rules.md
+
+google_analytics: "G-KJENKKX3W4"
