@@ -152,6 +152,8 @@ p {
         cursor: pointer;
         text-align: right;
 
+        transition: color 0.2s ease;
+
         &:hover {
           color: #475569;
         }
