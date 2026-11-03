@@ -12,7 +12,7 @@ We wanted to make AI-assisted development more consistent across our engineering
 
 What we learnt was that standardising the tooling was the easy part. Getting it to work across different codebases, respecting how experienced engineers work, and figuring how to deal with the new bottlenecks took longer.
 
-Our principal architect Jonathan has written about our early results and the tooling behind them in [his series on measuring AI's impact](/3-5x-factor-measuring-real-impact-ai-engineering-teams/). This is the story from the engineering management side, a year on.
+Our Principal Software Architect Jonathan has written about our early results and the tooling behind them in [his series on measuring AI's impact](/3-5x-factor-measuring-real-impact-ai-engineering-teams/). This is the story from the engineering management side, a year on.
 
 ## How we got here
 
