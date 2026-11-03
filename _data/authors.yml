@@ -4,7 +4,7 @@
 
 jonathan@tint.ai:
   name: Jonathan Petitcolas
-  title: Engineering Platform Lead
+  title: Principal Software Architect
   bio: I'm dedicated to making our engineers' lives a breeze, building tools, systems, and processes that empower them to ship faster, safer, and with greater confidence.
   gravatar_hash: 74d4c007d7af8de2daf47e7961756c5d
 
@@ -27,3 +27,8 @@ jahkell.lazarre@tint.ai:
   name: Jahkell Lazarre
   title: Software Engineer
   gravatar_hash: b4d96667232efc7a27806977c6de0358
+
+kanwaljit@tint.ai:
+  name: Kanwaljit Dilawari
+  title: Senior Engineering Manager
+  gravatar_hash: c7d5992145ba14a607d426d9669af915
