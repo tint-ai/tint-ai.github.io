@@ -20,8 +20,6 @@ As Claude Code became our team's main AI tool, engineers had developed their own
 
 We standardised a shared library of skills and review agents, a recommended `/implement` workflow covering planning through to PR creation, and a few enforced checks. We piloted the approach with one team first, knowing that consistency would come at the cost of some individual autonomy.
 
-<!-- TODO: Add a diagram of the /implement workflow (plan → develop → QA → review → PR). -->
-
 ## What we learnt from feedback
 
 Adoption wasn't immediate. It was also hard to measure, we still lack good data on who uses which tools. The workflow was slower by design, with extra review and QA passes. It didn't suit every codebase, particularly those with slow test suites, and some engineers were reluctant to abandon configurations they'd spent months refining.
@@ -29,8 +27,6 @@ Adoption wasn't immediate. It was also hard to measure, we still lack good data 
 We used feedback to improve the tooling. One issue came up during a large project, Claude silently dropped requirements and deferred work to tickets that didn't exist or had already been completed. The code could look finished while still missing parts of the agreed scope. It was a reminder that AI can accelerate productivity, but it can also accelerate the introduction of bugs and technical debt if the right guardrails aren't in place. Faster implementation only helps if quality keeps pace.
 
 The next day, we updated the shared workflow so Claude checks for unfinished tasks, skipped tests, placeholder logic and unmet acceptance criteria before opening a PR. Any deferred work must link to a ticket that Claude verifies exists, and the PR must list what's been deferred. Claude also checks the code on main rather than relying on potentially outdated ticket statuses.
-
-<!-- TODO: Add a screenshot of a PR description showing the "Deferred work" section. -->
 
 This didn't remove the need for human review, but it made omissions easier to spot. Every PR now gets an AI review, and we match human review to its impact: a review agent decides whether a change needs a human, and we enforce one when it touches sensitive areas such as payments or authorisation.
 
@@ -55,8 +51,6 @@ These principles set the baseline, while the shared workflow continues to evolve
 ## Are we more productive?
 
 Throughput increased by around 130% between spring 2025 and summer 2026. That's broadly in line with the early measurements in our first posts, now across the whole engineering team rather than a small group of early adopters.
-
-<!-- TODO: Add a throughput graph from spring 2025 to summer 2026. -->
 
 This metric doesn't measure value or prove AI alone caused the increase. But the change in throughput was substantial, and it brought new bottlenecks: as implementation got faster, code review and QA became constraints. We responded by improving our review workflow and adding a QA skill to support quality checks.
 
